@@ -12,6 +12,7 @@ interface IProps {
   context: any;
   itemId: number;
   formData: any;
+  onClose: () => void;
 }
 
 import logo from "../assets/sona-comstarlogo.png";
@@ -25,6 +26,7 @@ const ApproverAdvanceForm: React.FC<IProps> = ({
   context,
   itemId,
   formData,
+  onClose
 }) => {
   const sp = spfi().using(SPFx(context));
   const [previousAdvances, setPreviousAdvances] = useState<any[]>([]);
@@ -290,10 +292,7 @@ const ApproverAdvanceForm: React.FC<IProps> = ({
         });
 
       alert("Approved successfully ✅");
-
-      window.location.href =
-        "https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Approver";
-
+      onClose();
     } catch (error) {
       console.error(error);
     }
@@ -353,9 +352,7 @@ const ApproverAdvanceForm: React.FC<IProps> = ({
 
       alert("Send Back ✅");
 
-      window.location.href =
-        "https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Approver";
-
+      onClose();
     } catch (error) {
       console.error(error);
     }
@@ -408,8 +405,7 @@ const ApproverAdvanceForm: React.FC<IProps> = ({
 
       alert("Rejected ❌");
 
-      window.location.href =
-        "https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Approver";
+      onClose();
 
     } catch (error) {
       console.error(error);
@@ -417,7 +413,7 @@ const ApproverAdvanceForm: React.FC<IProps> = ({
   };
 
   const handleExit = () => {
-    window.location.href = `https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Approver`;
+  onClose();
   };
 
   // ⛔ Wait until data loads
@@ -788,7 +784,7 @@ const ApproverAdvanceForm: React.FC<IProps> = ({
                 <a onClick={handleReject} className="Reject-btn">
                   Reject
                 </a>
-                <a href="#" onClick={handleExit} className="reset-btn">
+                <a onClick={handleExit} className="reset-btn">
                   Exit
                 </a>
               </div>

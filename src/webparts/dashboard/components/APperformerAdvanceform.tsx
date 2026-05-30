@@ -12,6 +12,7 @@ interface IProps {
   context: any;
   itemId: number;
   formData: any; // 👈 IMPORTANT
+  onClose: () => void;
 }
 
 import logo from "../assets/sona-comstarlogo.png";
@@ -25,6 +26,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
   context,
   itemId,
   formData,
+  onClose,
 }) => {
 
   const sp = spfi().using(SPFx(context));
@@ -234,7 +236,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         });
 
       alert("Approved successfully ✅");
-      window.location.href = `https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Performer`;
+onClose();
     } catch (error) {
       console.error(error);
     }
@@ -301,7 +303,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         });
 
       alert("Send Back ✅");
-      window.location.href = `https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Performer`;
+      onClose();
     } catch (error) {
       console.error(error);
     }
@@ -360,13 +362,13 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         });
 
       alert("Rejected ❌");
-      window.location.href = `https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Performer`;
+      onClose();
     } catch (error) {
       console.error(error);
     }
   };
   const handleExit = () => {
-    window.location.href = `https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=Performer`;
+    onClose();
   };
 
   // ⛔ Wait until data loads
@@ -753,7 +755,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                 <a onClick={handleReject} className="Reject-btn">
                   Reject
                 </a>
-                <a href="#" onClick={handleExit} className="reset-btn">
+                <a onClick={handleExit} className="reset-btn">
                   Exit
                 </a>
               </div>

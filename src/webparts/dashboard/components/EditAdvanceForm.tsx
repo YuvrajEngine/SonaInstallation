@@ -228,12 +228,9 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
   };
 
   const handleExit = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      window.location.reload();
-    }
+    onClose();
   };
+
   const ensureFolder = async (folderPath: string) => {
     try {
       await sp.web.getFolderByServerRelativePath(folderPath)();
@@ -321,15 +318,14 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
           Status: "Pending for Approver",
         });
 
-
       if (selectedFiles.length > 0) {
         await uploadFiles();
       }
 
       alert("Updated successfully ✅");
-      window.location.href =
-        "https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=User";
-      void handleExit();
+
+      // Navigate back to dashboard via parent component
+      onClose();
     } catch (e) {
       console.error(e);
       alert("Error ❌");
@@ -384,70 +380,106 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
   // UI
   // =========================
   return (
-    <div className='MainUplodForm' style={{ margin: "5px 0px" }}>
-      <div className='row'>
-        <div className='col-md-12'>
-          <div className='Main-Boxpoup'>
+    <div className="MainUplodForm" style={{ margin: "5px 0px" }}>
+      <div className="row">
+        <div className="col-md-12">
+          <div className="Main-Boxpoup">
             {/* 🔹 Header */}
             <div className="bordered">
               <img src={logo} />
               <h1> Edit Advance Payment </h1>
             </div>
-            <div className='borderedbox'>
+            <div className="borderedbox">
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Requestor Information</label>
               </div>
-              <div className='main-formcontainer'>
-                <div className='row mb-20'>
-                  <div className='col-md-4'>
-                    <label htmlFor="Employee Code" className='font'>Employee Code</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeCode}</label>
+              <div className="main-formcontainer">
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label htmlFor="Employee Code" className="font">
+                      Employee Code
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext"> {employee.EmployeeCode}</label>
                   </div>
-                  <div className='col-md-4'>
-                    <label htmlFor="Employee Name" className='font'>Employee Name </label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeName}</label>
+                  <div className="col-md-4">
+                    <label htmlFor="Employee Name" className="font">
+                      Employee Name{" "}
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext"> {employee.EmployeeName}</label>
                   </div>
-                  <div className='col-md-4'>
-                    <label htmlFor="Employee Email" className='font'>Employee Email </label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeEmail}</label>
-                  </div>
-                </div>
-                <div className='row mb-20'>
-                  <div className='col-md-4'>
-                    <label htmlFor="Contact No" className='font'>Contact No</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.ContactNo}</label>
-                  </div>
-                  <div className='col-md-4'>
-                    <label htmlFor="Employee Status" className='font'>Employee Status</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeStatus}</label>
-                  </div>
-                  <div className='col-md-4'>
-                    <label htmlFor="Division" className='font'>Division</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.Division}</label>
+                  <div className="col-md-4">
+                    <label htmlFor="Employee Email" className="font">
+                      Employee Email{" "}
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext">
+                      {" "}
+                      {employee.EmployeeEmail}
+                    </label>
                   </div>
                 </div>
-                <div className='row mb-20'>
-                  <div className='col-md-4'>
-                    <label htmlFor="Location" className='font'>Location</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.Location}</label>
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label htmlFor="Contact No" className="font">
+                      Contact No
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext"> {employee.ContactNo}</label>
                   </div>
-                  <div className='col-md-4'>
-                    <label htmlFor="RM" className='font'>RM</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.ReportingManager?.Title}</label>
+                  <div className="col-md-4">
+                    <label htmlFor="Employee Status" className="font">
+                      Employee Status
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext">
+                      {" "}
+                      {employee.EmployeeStatus}
+                    </label>
                   </div>
-                  <div className='col-md-4'>
-                    <label htmlFor="HOD" className='font'>HOD</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.HOD?.Title}</label>
+                  <div className="col-md-4">
+                    <label htmlFor="Division" className="font">
+                      Division
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext"> {employee.Division}</label>
+                  </div>
+                </div>
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label htmlFor="Location" className="font">
+                      Location
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext"> {employee.Location}</label>
+                  </div>
+                  <div className="col-md-4">
+                    <label htmlFor="RM" className="font">
+                      RM
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext">
+                      {" "}
+                      {employee.ReportingManager?.Title}
+                    </label>
+                  </div>
+                  <div className="col-md-4">
+                    <label htmlFor="HOD" className="font">
+                      HOD
+                    </label>{" "}
+                    : &nbsp;&nbsp;
+                    <label className="fonttext"> {employee.HOD?.Title}</label>
                   </div>
                 </div>
               </div>
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Vendor & PO Details</label>
               </div>
-              <div className='main-formcontainer'>
+              <div className="main-formcontainer">
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label className='font'>Vendor Code</label>
+                    <label className="font">Vendor Code</label>
                     <select
                       value={selectedVendorId || ""}
                       className="formtext-control"
@@ -467,53 +499,92 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                     </select>
                   </div>
                   <div className="col-md-4">
-                    <label className='font'>Vendor Name</label>
-                    <input value={selectedVendorName || vendorName} className='form-control readonly' />
+                    <label className="font">Vendor Name</label>
+                    <input
+                      value={selectedVendorName || vendorName}
+                      className="form-control readonly"
+                    />
                   </div>
                   <div className="col-md-4">
-                    <label className='font'>PO Number</label>
-                    <input value={PONumber} className='form-control' onChange={(e) => setPONumber(e.target.value)} />
-                  </div>
-                </div>
-                <div className="row mb-20">
-                  <div className="col-md-4">
-                    <label className='font'>PO Date</label>
-                    <input type="date" value={POdate} className='form-control' onChange={(e) => setPOdate(e.target.value)} />
-                  </div>
-                  <div className="col-md-4">
-                    <label className='font'>PO Payment Terms</label>
-                    <input value={POPaymentTerms} className='form-control' onChange={(e) => setPOPaymentTerms(e.target.value)} />
-                  </div>
-                  <div className="col-md-4">
-                    <label className='font'>PO Amount </label>
-                    <input value={POAmount} className='form-control' onChange={(e) => setPOAmount(e.target.value)} />
+                    <label className="font">PO Number</label>
+                    <input
+                      value={PONumber}
+                      className="form-control"
+                      onChange={(e) => setPONumber(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label className="font">Total Payment for the Project</label>
-                    <input value={TotalPaymentofProject} className='form-control' onChange={(e) => setTotalPaymentofProject(e.target.value)} />
+                    <label className="font">PO Date</label>
+                    <input
+                      type="date"
+                      value={POdate}
+                      className="form-control"
+                      onChange={(e) => setPOdate(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">PO Payment Terms</label>
+                    <input
+                      value={POPaymentTerms}
+                      className="form-control"
+                      onChange={(e) => setPOPaymentTerms(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">PO Amount </label>
+                    <input
+                      value={POAmount}
+                      className="form-control"
+                      onChange={(e) => setPOAmount(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label className="font">
+                      Total Payment for the Project
+                    </label>
+                    <input
+                      value={TotalPaymentofProject}
+                      className="form-control"
+                      onChange={(e) => setTotalPaymentofProject(e.target.value)}
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">Gst Adjustment(Any)</label>
-                    <input value={GSTAdjustmentifAny} className='form-control' onChange={(e) => setGSTAdjustmentifAny(e.target.value)} />
+                    <input
+                      value={GSTAdjustmentifAny}
+                      className="form-control"
+                      onChange={(e) => setGSTAdjustmentifAny(e.target.value)}
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">Other Adjustment</label>
-                    <input value={OtherAdjustmentifany} className='form-control' onChange={(e) => setOtherAdjustmentifany(e.target.value)} />
+                    <input
+                      value={OtherAdjustmentifany}
+                      className="form-control"
+                      onChange={(e) => setOtherAdjustmentifany(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label className="font" style={{ color: "red" }}>Total Project Amount to be Capitalized</label>
-                    <input value={totalCapitalized} className='form-control readonly' />
+                    <label className="font" style={{ color: "red" }}>
+                      Total Project Amount to be Capitalized
+                    </label>
+                    <input
+                      value={totalCapitalized}
+                      className="form-control readonly"
+                    />
                   </div>
                 </div>
               </div>
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Previous Advances</label>
               </div>
-              <div className='main-formcontainer'>
+              <div className="main-formcontainer">
                 <div className="row mb-20">
                   <div className="col-md-12">
                     <div style={{ overflowX: "auto" }}>
@@ -531,7 +602,11 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                         </thead>
                         <tbody>
                           <tr>
-                            <td className="px-4 py-2" colSpan={7} style={{ textAlign: "center" }}>
+                            <td
+                              className="px-4 py-2"
+                              colSpan={7}
+                              style={{ textAlign: "center" }}
+                            >
                               No Data
                             </td>
                           </tr>
@@ -544,7 +619,7 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Upload Docuement</label>
               </div>
-              <div className='main-formcontainer'>
+              <div className="main-formcontainer">
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">Attachments</label>
@@ -563,15 +638,32 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                         ))}
                       </ul>
                     )}
-                    <input type="file" className="form-control" multiple onChange={(e) => { if (e.target.files) { setSelectedFiles(Array.from(e.target.files)); } }} />
+                    <input
+                      type="file"
+                      className="form-control"
+                      multiple
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          setSelectedFiles(Array.from(e.target.files));
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "center", gap: "5px", marginBottom: "1rem", marginTop: "1rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "5px",
+                  marginBottom: "1rem",
+                  marginTop: "1rem",
+                }}
+              >
                 <a onClick={handleSubmit} className="submit-btn">
                   Update
                 </a>
-                <a href="#" onClick={handleExit} className="reset-btn">
+                <a onClick={handleExit} className="reset-btn">
                   Exit
                 </a>
               </div>

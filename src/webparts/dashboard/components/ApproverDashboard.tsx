@@ -9,7 +9,6 @@ import { useState } from "react";
 // import userlogo from "../assets/userlogo.png";
 // import "../assets/bootstrap/css/bootstrap.css";
 
-
 import logo from "../assets/SonaPNGLogo.png";
 import Edit from "../assets/Pencil.png";
 import User from "../assets/Userlogo.png";
@@ -69,7 +68,6 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     }
   };
 
-
   // ✅ GET LIST DATA
   const getCapexData = async () => {
     try {
@@ -85,13 +83,11 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
           "VendorCode",
           "PONumber",
           "TotalamounttobeCapitalized",
-          "Status"
+          "Status",
         )
         // .expand("VendorCode") // ✅ ADD THIS LINE
         .filter(`Status eq 'Pending for Approver'`)
         .orderBy("ID", false)();
-
-
 
       const formatted = items.map((item: any) => ({
         ID: item.ID,
@@ -104,7 +100,7 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
         VendorCode: item.VendorCode || "",
         PONumber: item.PONumber || "",
         TotalamounttobeCapitalized: item.TotalamounttobeCapitalized || "",
-        status: item.Status || ""
+        status: item.Status || "",
       }));
 
       setData(formatted);
@@ -114,7 +110,6 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
   };
 
   // ✅ VIEW CLICK
-
 
   // ✅ FILTER
   const filteredData = data.filter((item) => {
@@ -133,16 +128,13 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
 
     return (
       menuFilter &&
-      (
-        item.PaymentId?.toLowerCase().includes(text) ||
+      (item.PaymentId?.toLowerCase().includes(text) ||
         item.EmployeeName?.toLowerCase().includes(text) ||
         item.VendorName?.toLowerCase().includes(text) ||
         item.VendorCode?.toLowerCase().includes(text) ||
-        item.PONumber?.toLowerCase().includes(text)
-      ) &&
+        item.PONumber?.toLowerCase().includes(text)) &&
       (!status || item.status?.toLowerCase().includes(status))
     );
-
   });
 
   // ✅ LOAD DATA
@@ -161,15 +153,18 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
           context={context}
           formData={selectedItem}
           itemId={selectedItem?.ID}
+          onClose={() => {
+            setShowForm(false);
+            setSelectedItem(null);
+            void getCapexData();
+          }}
         />
       );
     }
   }
 
-
   return (
     <>
-
       <div style={{ display: "flex", width: "100%" }}>
         <div className="sidebar">
           <div className="sidehead">
@@ -180,42 +175,78 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
           </div>
 
           <div className="sidehead-user">
-            <img src={User} style={{ margin: "10px 20px" }} width={20} height={20} />
+            <img
+              src={User}
+              style={{ margin: "10px 20px" }}
+              width={20}
+              height={20}
+            />
             {currentUserName}
           </div>
 
           <ul className="nav">
             <li className="nav-item">
-              <a className={activeMenu === "My Request" ? " nav-link active" : "nav-link"} onClick={() => setActiveMenu("My Request")} style={{ cursor: "pointer" }}>
+              <a
+                className={
+                  activeMenu === "My Request" ? " nav-link active" : "nav-link"
+                }
+                onClick={() => setActiveMenu("My Request")}
+                style={{ cursor: "pointer" }}
+              >
                 My Request
               </a>
             </li>
             <li className="nav-item">
-              <a className={activeMenu === "Paid" ? " nav-link  active" : "nav-link"} onClick={() => setActiveMenu("Paid")} style={{ cursor: "pointer" }}>
+              <a
+                className={
+                  activeMenu === "Paid" ? " nav-link  active" : "nav-link"
+                }
+                onClick={() => setActiveMenu("Paid")}
+                style={{ cursor: "pointer" }}
+              >
                 Paid
               </a>
             </li>
             <li className="nav-item">
-              <a className={activeMenu === "Rejected" ? "nav-link  active" : "nav-link"} onClick={() => setActiveMenu("Rejected")} style={{ cursor: "pointer" }}>
+              <a
+                className={
+                  activeMenu === "Rejected" ? "nav-link  active" : "nav-link"
+                }
+                onClick={() => setActiveMenu("Rejected")}
+                style={{ cursor: "pointer" }}
+              >
                 Rejected
               </a>
             </li>
           </ul>
         </div>
-        <div className="main" style={{ width: "calc(100% - 250px)", transition: "width 0.3s" }}>
+        <div
+          className="main"
+          style={{ width: "calc(100% - 250px)", transition: "width 0.3s" }}
+        >
           <div className="header">
             <div className="left-banner">
               <div className="logo-text">
-                <h2> Installation  Approver Dashbaord  </h2>
+                <h2> Installation Approver Dashbaord </h2>
               </div>
             </div>
           </div>
           <div className="col-md-12 mainsecond">
             <div>
-              <input placeholder="Search" value={searchText} className="form-control" style={{ width: "250px;" }} onChange={(e) => setSearchText(e.target.value)} />
+              <input
+                placeholder="Search"
+                value={searchText}
+                className="form-control"
+                style={{ width: "250px;" }}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
             </div>
             <div>
-              <select value={statusFilter} className='formtext-control' onChange={(e) => setStatusFilter(e.target.value)}>
+              <select
+                value={statusFilter}
+                className="formtext-control"
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
                 <option value="">All</option>
                 <option value="Submitted">Submitted</option>
                 <option value="Approved">Approved</option>
@@ -228,7 +259,10 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
             <div style={{ overflowX: "auto" }}>
               <div className="table-vert-scroll">
                 <table className="custom-table min-w-full bg-white rounded-2xl shadow-md">
-                  <thead className="text-white" style={{ backgroundColor: "rgb(60, 62, 69)" }}>
+                  <thead
+                    className="text-white"
+                    style={{ backgroundColor: "rgb(60, 62, 69)" }}
+                  >
                     <tr>
                       <th className="px-4 py-2">Action</th>
                       <th className="px-4 py-2">Payment ID</th>
@@ -241,7 +275,6 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
                       <th className="px-4 py-2">Capatalized Amount</th>
                       <th className="px-4 py-2">Pending With</th>
                       <th className="px-4 py-2">Status</th>
-
                     </tr>
                   </thead>
                   <tbody>
@@ -255,7 +288,10 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
                       filteredData.map((item, i) => (
                         <tr key={i}>
                           <td className="px-4 py-2">
-                            <span onClick={() => handleApproveClick(item)} style={{ cursor: "pointer" }}>
+                            <span
+                              onClick={() => handleApproveClick(item)}
+                              style={{ cursor: "pointer" }}
+                            >
                               <img src={Edit} width={15} alt="View" />
                             </span>
                           </td>
@@ -266,7 +302,9 @@ const ApproverDashboard: React.FC<UserDashboardProps> = ({ context }) => {
                           <td className="px-4 py-2">{item.VendorCode}</td>
                           <td className="px-4 py-2">{item.VendorName}</td>
                           <td className="px-4 py-2">{item.PONumber}</td>
-                          <td className="px-4 py-2">₹ {item.TotalamounttobeCapitalized}</td>
+                          <td className="px-4 py-2">
+                            ₹ {item.TotalamounttobeCapitalized}
+                          </td>
                           <td className="px-4 py-2">Approver</td>
                           <td className="px-4 py-2">{item.status}</td>
                         </tr>

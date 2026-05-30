@@ -9,11 +9,6 @@ import {
   PrincipalType,
 } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { IPeoplePickerContext } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-// interface IVendor {
-//     VendorCode: string;
-//     VendorName: string;
-// }
-
 
 import logo from "../assets/sona-comstarlogo.png";
 
@@ -30,10 +25,9 @@ interface IPOData {
   POAmtGST: string;
 }
 
-const NewAdvanceform = ({ context }: any) => {
+const NewAdvanceform = ({ context, onClose }: any) => {
   const sp = spfi().using(SPFx(context));
   const [employee, setEmployee] = React.useState<any>({});
-  //const [selectedUser, setSelectedUser] = useState<any>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previousAdvances, setPreviousAdvances] = useState<any[]>([]);
   const [data, setData] = React.useState<any[]>([]);
@@ -52,11 +46,8 @@ const NewAdvanceform = ({ context }: any) => {
   const [poTerms, setPoTerms] = useState("");
 
   const [expectedDate, setExpectedDate] = useState("");
-
   const [glCode, setGlCode] = useState("FIN-001");
-
   const [costCenter, setCostCenter] = useState("");
-
   const [remarks, setRemarks] = useState("");
   const [projectDesc, setProjectDesc] = useState("");
   const [advanceAmount, setAdvanceAmount] = useState("");
@@ -69,6 +60,7 @@ const NewAdvanceform = ({ context }: any) => {
     Number(gstAdjustment || 0) +
     Number(otherAdjustment || 0)
   ).toFixed(2);
+
   const peoplePickerContext: IPeoplePickerContext = {
     absoluteUrl: context.pageContext.web.absoluteUrl,
     msGraphClientFactory: context.msGraphClientFactory,
@@ -76,17 +68,15 @@ const NewAdvanceform = ({ context }: any) => {
   };
 
   const handleNumberChange = (value: string, setter: any) => {
-    // Allow only numbers and decimal (max one dot)
     const regex = /^\d*\.?\d*$/;
-
     if (regex.test(value)) {
       void setter(value);
     }
   };
+
   const getPaidPOs = async () => {
     try {
       debugger;
-
       const data = await sp.web.lists
         .getByTitle("CapexAdvance")
         .items.select(
@@ -127,12 +117,12 @@ const NewAdvanceform = ({ context }: any) => {
           "EmployeeName",
           "VendorName",
           "VendorCode/Id",
-          "VendorCode/VendorCode", // 👈 IMPORTANT
+          "VendorCode/VendorCode",
           "PONumber",
           "RequestAdvanceAmount",
           "Status",
         )
-        .expand("VendorCode") // 👈 MUST
+        .expand("VendorCode")
         .orderBy("ID", false)();
 
       const formatted = items.map((item: any) => ({
@@ -142,10 +132,8 @@ const NewAdvanceform = ({ context }: any) => {
           ? new Date(item.Created).toLocaleDateString("en-GB")
           : "",
         EmployeeName: item.EmployeeName,
-
         vendor: item.VendorName || "",
-        vendorCode: item.VendorCode?.VendorCode || "", // 👈 FIX
-
+        vendorCode: item.VendorCode?.VendorCode || "",
         po: item.PONumber || "",
         amount: item.RequestAdvanceAmount || 0,
         status: item.Status || "",
@@ -156,6 +144,7 @@ const NewAdvanceform = ({ context }: any) => {
       console.error("Data error:", error);
     }
   };
+
   const getPreviousAdvances = async (vendorId: number) => {
     try {
       debugger;
@@ -168,7 +157,6 @@ const NewAdvanceform = ({ context }: any) => {
           "RequestAdvanceAmount",
           "Created",
           "VoucherDate",
-
           "PaidAmount",
           "Status",
           "VendorCode/Id",
@@ -178,7 +166,6 @@ const NewAdvanceform = ({ context }: any) => {
         .orderBy("Created", false)();
 
       console.log("DATA:", data);
-
       void setPreviousAdvances(data);
     } catch (error) {
       console.error("Error fetching previous advances:", error);
@@ -186,9 +173,9 @@ const NewAdvanceform = ({ context }: any) => {
     }
   };
 
+  // ✅ EXIT — uses onClose instead of hardcoded URL
   const handleExit = () => {
-    window.location.href =
-      "https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=User";
+    onClose();
   };
 
   const getLoggedInUser = async () => {
@@ -221,51 +208,43 @@ const NewAdvanceform = ({ context }: any) => {
       console.log("Error fetching user:", error);
     }
   };
+
   const buildApprovalFlow = async () => {
     try {
       const flow: any[] = [];
 
-      // =========================
       // 🔥 1. ADD RM
-      // =========================
       if (employee.ReportingManager?.Title) {
         const rmUser = await sp.web.ensureUser(
           employee.ReportingManager.Title
         );
-
         flow.push({
           Id: rmUser.Id,
           Name: employee.ReportingManager.Title,
           Role: "RM",
           Level: 1,
-          Status: "In Progress"
+          Status: "In Progress",
         });
       }
 
-      // =========================
       // 🔥 2. ADD HOD
-      // =========================
       if (employee.HOD?.Title) {
         const hodUser = await sp.web.ensureUser(
           employee.HOD.Title
         );
-
         flow.push({
           Id: hodUser.Id,
           Name: employee.HOD.Title,
           Role: "HOD",
           Level: 2,
-          Status: "Pending"
+          Status: "Pending",
         });
       }
 
-      // =========================
       // 🔥 3. GET MATRIX APPROVERS
-      // =========================
       const matrixData = await sp.web.lists
         .getByTitle("InstallationCommisionApprovalMatrix")
-        .items
-        .select("Role/RoleName,Approver/Id,Approver/Title,Level/Level")
+        .items.select("Role/RoleName,Approver/Id,Approver/Title,Level/Level")
         .expand("Role", "Approver", "Level")
         .filter("Status eq 'Active'")
         .orderBy("Level", true)();
@@ -275,25 +254,23 @@ const NewAdvanceform = ({ context }: any) => {
           Id: item.Approver?.Id,
           Name: item.Approver?.Title,
           Role: item.Role?.RoleName,
-          Level: item.length + index + 1,
-          Status: "Pending"
+          Level: flow.length + index + 1,
+          Status: "Pending",
         })
       );
 
       const fullFlow = [...flow, ...matrixApprovers];
-
       return fullFlow;
-
     } catch (error) {
       console.error("Approval Flow Error:", error);
       return [];
     }
   };
+
   const getVendors = async () => {
     const data = await sp.web.lists
       .getByTitle("VendorMaster")
-      .items.select("Id", "VendorCode", "VendorName")(); // ✅ Id required
-
+      .items.select("Id", "VendorCode", "VendorName")();
     void setVendors(data);
   };
 
@@ -301,17 +278,16 @@ const NewAdvanceform = ({ context }: any) => {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
-
     if (month >= 4) {
-      // April to March
       return `${year.toString().slice(-2)}-${(year + 1).toString().slice(-2)}`;
     } else {
       return `${(year - 1).toString().slice(-2)}-${year.toString().slice(-2)}`;
     }
   };
+
   const generatePaymentId = async () => {
     try {
-      const fy = getFinancialYear(); // 25-26
+      const fy = getFinancialYear();
 
       const items = await sp.web.lists
         .getByTitle("Installation")
@@ -324,12 +300,9 @@ const NewAdvanceform = ({ context }: any) => {
 
       if (items.length > 0 && items[0].PaymentId) {
         const lastId = items[0].PaymentId;
-
         const parts = lastId.split("/");
-
         if (parts.length === 3) {
           const lastNumber = parseInt(parts[2]);
-
           if (!isNaN(lastNumber)) {
             nextNumber = lastNumber + 1;
           }
@@ -337,7 +310,6 @@ const NewAdvanceform = ({ context }: any) => {
       }
 
       const formattedNumber = nextNumber.toString().padStart(5, "0");
-
       return `INT/${fy}/${formattedNumber}`;
     } catch (error) {
       alert(error);
@@ -345,21 +317,18 @@ const NewAdvanceform = ({ context }: any) => {
       return `INT/${getFinancialYear()}/00001`;
     }
   };
+
   const uploadAttachments = async (PaymentId: string) => {
     try {
       if (!attachments || attachments.length === 0) return;
 
       const safePaymentId = PaymentId.replace(/\//g, "_");
-
       const libraryName = "InstallationCommision";
       const webUrl = context.pageContext.web.serverRelativeUrl;
-
       const folderPath = `${webUrl}/${libraryName}/${safePaymentId}`;
 
-      // ✅ Ensure folder
       await sp.web.folders.addUsingPath(`${libraryName}/${safePaymentId}`);
 
-      // ✅ Upload files properly
       for (const file of attachments) {
         await sp.web
           .getFolderByServerRelativePath(folderPath)
@@ -378,17 +347,12 @@ const NewAdvanceform = ({ context }: any) => {
     if (!selectedVendorId) {
       errors.push("Please select the Vendor code");
     }
-
     if (!poNumber) {
       errors.push("Please update PO Number");
     }
-
     if (!paidAmount || Number(paidAmount) <= 0) {
-      errors.push("Please update Total Payment ");
+      errors.push("Please update Total Payment");
     }
-
-    // 🔥 NEW VALIDATION
-
     if (!attachments || attachments.length === 0) {
       errors.push("Please upload at least one attachment");
     }
@@ -396,13 +360,13 @@ const NewAdvanceform = ({ context }: any) => {
     return errors;
   };
 
+  // ✅ SUBMIT — uses onClose instead of hardcoded URL
   const handleSubmit = async () => {
     try {
       debugger;
       const errors = validateForm();
-
       if (errors.length > 0) {
-        alert(errors.join("\n")); // 👈 shows exactly like your screenshot
+        alert(errors.join("\n"));
         return;
       }
 
@@ -412,7 +376,7 @@ const NewAdvanceform = ({ context }: any) => {
         .fields.filter("InternalName eq 'PaymentId'")();
 
       console.log("Fields:", fields);
-      //   alert("Fields: " + JSON.stringify(fields));
+
       const flow = await buildApprovalFlow();
       const currentApproverId = flow.length > 0 ? flow[0].Id : null;
       const history = [
@@ -420,8 +384,8 @@ const NewAdvanceform = ({ context }: any) => {
           CurrentApprover: employee.EmployeeName,
           ActionTaken: "Submitted",
           Comment: remarks || "Request submitted",
-          Date: new Date().toISOString()
-        }
+          Date: new Date().toISOString(),
+        },
       ];
 
       await sp.web.lists.getByTitle("Installation").items.add({
@@ -452,46 +416,32 @@ const NewAdvanceform = ({ context }: any) => {
         OtherAdjustmentifany: otherAdjustment || "0",
         TotalamounttobeCapitalized: paidAmount || "0",
 
-        //VoucherDate: voucherDate ? new Date(voucherDate) : null,
-        //UTRDate: UTRDate ? new Date(UTRDate) : null,
-
         Status: "Pending for Approver",
         ApprovalMatrix: JSON.stringify(flow),
         CurrentApproverId: currentApproverId,
-        WorkFlowHistory: JSON.stringify(history)
+        WorkFlowHistory: JSON.stringify(history),
       });
 
       debugger;
-      await uploadAttachments(PaymentId); // 🔥 FIXED
+      await uploadAttachments(PaymentId);
 
       console.log("Attachments:", attachments);
       alert("Submitted successfully ✅");
 
-      // 🔥 REDIRECT
-      window.location.href =
-        "https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=User";
+      // ✅ Navigate back to dashboard via onClose
+      onClose();
     } catch (error) {
       console.error("ERROR:", error);
       alert(error);
     }
   };
 
+  // ✅ DRAFT — uses onClose instead of hardcoded URL
   const handledraft = async () => {
     try {
       debugger;
       const PaymentId = await generatePaymentId();
 
-      // let ensuredUserId: number | null = null;
-
-      // // ✅ Only process if user selected
-      // if (selectedUser && selectedUser.length > 0) {
-      //   const userEmail = selectedUser[0]?.secondaryText;
-
-      //   if (userEmail) {
-      //     const ensuredUser = await sp.web.ensureUser(userEmail);
-      //     ensuredUserId = ensuredUser.Id;
-      //   }
-      // }
       const flow = await buildApprovalFlow();
       const currentApproverId = flow.length > 0 ? flow[0].Id : null;
       const history = [
@@ -499,9 +449,10 @@ const NewAdvanceform = ({ context }: any) => {
           CurrentApprover: employee.EmployeeName,
           ActionTaken: "Draft",
           Comment: "Saved as draft",
-          Date: new Date().toISOString()
-        }
+          Date: new Date().toISOString(),
+        },
       ];
+
       await sp.web.lists.getByTitle("Installation").items.add({
         Title: PaymentId,
         PaymentId: PaymentId,
@@ -533,16 +484,15 @@ const NewAdvanceform = ({ context }: any) => {
         Status: "Draft",
         ApprovalMatrix: JSON.stringify(flow),
         CurrentApproverId: currentApproverId,
-        WorkFlowHistory: JSON.stringify(history)
+        WorkFlowHistory: JSON.stringify(history),
       });
 
       await uploadAttachments(PaymentId);
 
-
       alert("Draft saved successfully ✅");
 
-      window.location.href =
-        "https://isriglobal.sharepoint.com/sites/SonaFinance/SitePages/Commision.aspx?page=User";
+      // ✅ Navigate back to dashboard via onClose
+      onClose();
     } catch (error) {
       console.error("ERROR:", error);
       alert("ERROR");
@@ -554,7 +504,7 @@ const NewAdvanceform = ({ context }: any) => {
     if (!context) return;
     debugger;
     void getLoggedInUser();
-    void getVendors(); // 👈 ADD THIS
+    void getVendors();
     void getPaidPOs();
   }, [context]);
 
@@ -576,46 +526,47 @@ const NewAdvanceform = ({ context }: any) => {
                 <div className='row mb-20'>
                   <div className='col-md-4'>
                     <label htmlFor="Employee Code" className='font'>Employee Code</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeCode}</label>
+                    <label className='fonttext'>{employee.EmployeeCode}</label>
                   </div>
                   <div className='col-md-4'>
                     <label htmlFor="Employee Name" className='font'>Employee Name </label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeName}</label>
+                    <label className='fonttext'>{employee.EmployeeName}</label>
                   </div>
                   <div className='col-md-4'>
                     <label htmlFor="Employee Email" className='font'>Employee Email </label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeEmail}</label>
+                    <label className='fonttext'>{employee.EmployeeEmail}</label>
                   </div>
                 </div>
                 <div className='row mb-20'>
                   <div className='col-md-4'>
                     <label htmlFor="Contact No" className='font'>Contact No</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.ContactNo}</label>
+                    <label className='fonttext'>{employee.ContactNo}</label>
                   </div>
                   <div className='col-md-4'>
                     <label htmlFor="Employee Status" className='font'>Employee Status</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.EmployeeStatus}</label>
+                    <label className='fonttext'>{employee.EmployeeStatus}</label>
                   </div>
                   <div className='col-md-4'>
                     <label htmlFor="Division" className='font'>Division</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.Division}</label>
+                    <label className='fonttext'>{employee.Division}</label>
                   </div>
                 </div>
                 <div className='row mb-20'>
                   <div className='col-md-4'>
                     <label htmlFor="Location" className='font'>Location</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.Location}</label>
+                    <label className='fonttext'>{employee.Location}</label>
                   </div>
                   <div className='col-md-4'>
                     <label htmlFor="RM" className='font'>RM</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.ReportingManager?.Title}</label>
+                    <label className='fonttext'>{employee.ReportingManager?.Title}</label>
                   </div>
                   <div className='col-md-4'>
                     <label htmlFor="HOD" className='font'>HOD</label> : &nbsp;&nbsp;
-                    <label className='fonttext'>  {employee.HOD?.Title}</label>
+                    <label className='fonttext'>{employee.HOD?.Title}</label>
                   </div>
                 </div>
               </div>
+
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Vendor & PO Details</label>
               </div>
@@ -623,20 +574,23 @@ const NewAdvanceform = ({ context }: any) => {
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className='font'>Vendor Code</label>
-                    <select value={selectedVendorId || ""} onChange={(e) => {
-                      const id = Number(e.target.value);
-                      const vendor = vendors.find((v) => v.Id === id);
-                      setSelectedVendorId(id); setSelectedVendorName(vendor?.VendorName || "");
-                      if (id) { void getPreviousAdvances(id); }
-                    }} className='formtext-control'>
+                    <select
+                      value={selectedVendorId || ""}
+                      onChange={(e) => {
+                        const id = Number(e.target.value);
+                        const vendor = vendors.find((v) => v.Id === id);
+                        setSelectedVendorId(id);
+                        setSelectedVendorName(vendor?.VendorName || "");
+                        if (id) { void getPreviousAdvances(id); }
+                      }}
+                      className='formtext-control'
+                    >
                       <option value="">Select Vendor</option>
-                      {vendors.map(
-                        (v,) => (
-                          <option key={v.Id} value={v.Id} >
-                            {v.VendorCode}
-                          </option>
-                        ),
-                      )}
+                      {vendors.map((v) => (
+                        <option key={v.Id} value={v.Id}>
+                          {v.VendorCode}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-md-4">
@@ -646,21 +600,19 @@ const NewAdvanceform = ({ context }: any) => {
                   <div className="col-md-4">
                     <label className='font'>PO Number</label>
                     <select
-                      value={poNumber} className='formtext-control'
+                      value={poNumber}
+                      className='formtext-control'
                       onChange={(e) => {
                         const selectedPO = poList.find(
                           (item) => item.PONumber === e.target.value,
                         );
-
                         setPoNumber(e.target.value);
-
                         if (selectedPO) {
                           setPoDate(
                             selectedPO.PODate
                               ? new Date(selectedPO.PODate).toISOString().split("T")[0]
                               : "",
                           );
-
                           setPoTerms(selectedPO.POAdvanceTerms || "");
                           setPoAmount(selectedPO.POAmtGST || "");
                         }
@@ -692,24 +644,39 @@ const NewAdvanceform = ({ context }: any) => {
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">Total Payment for the Project</label>
-                    <input value={advanceAmount} className='form-control' onChange={(e) => handleNumberChange(e.target.value, setAdvanceAmount)} />
+                    <input
+                      value={advanceAmount}
+                      className='form-control'
+                      onChange={(e) => handleNumberChange(e.target.value, setAdvanceAmount)}
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">Gst Adjustment(Any)</label>
-                    <input value={gstAdjustment} className='form-control' onChange={(e) => handleNumberChange(e.target.value, setGstAdjustment)} />
+                    <input
+                      value={gstAdjustment}
+                      className='form-control'
+                      onChange={(e) => handleNumberChange(e.target.value, setGstAdjustment)}
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">Other Adjustment</label>
-                    <input value={otherAdjustment} className='form-control' onChange={(e) => handleNumberChange(e.target.value, setOtherAdjustment)} />
+                    <input
+                      value={otherAdjustment}
+                      className='form-control'
+                      onChange={(e) => handleNumberChange(e.target.value, setOtherAdjustment)}
+                    />
                   </div>
                 </div>
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label className="font" style={{ color: "red" }}>Total Project Amount to be Capitalized</label>
+                    <label className="font" style={{ color: "red" }}>
+                      Total Project Amount to be Capitalized
+                    </label>
                     <input value={paidAmount} className='form-control readonly' />
                   </div>
                 </div>
               </div>
+
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Past MRN Details</label>
               </div>
@@ -726,7 +693,7 @@ const NewAdvanceform = ({ context }: any) => {
                             <th className="px-4 py-2">MRN No</th>
                             <th className="px-4 py-2">MRN Date</th>
                             <th className="px-4 py-2">MRN Amount</th>
-                            <th className="px-4 py-2"> Advance Adjustment</th>
+                            <th className="px-4 py-2">Advance Adjustment</th>
                             <th className="px-4 py-2">Paid Amount</th>
                             <th className="px-4 py-2">Remarks</th>
                           </tr>
@@ -734,7 +701,7 @@ const NewAdvanceform = ({ context }: any) => {
                         <tbody>
                           {previousAdvances.length === 0 ? (
                             <tr>
-                              <td colSpan={7} style={{ textAlign: "center" }}>
+                              <td colSpan={9} style={{ textAlign: "center" }}>
                                 No Data
                               </td>
                             </tr>
@@ -749,19 +716,16 @@ const NewAdvanceform = ({ context }: any) => {
                                 <tr key={index}>
                                   <td className="px-4 py-2">{item.PONumber}</td>
                                   <td className="px-4 py-2">{item.RequestAdvanceAmount}</td>
-
                                   <td className="px-4 py-2">
                                     {item.Created
                                       ? new Date(item.Created).toLocaleDateString()
                                       : ""}
                                   </td>
-
                                   <td className="px-4 py-2">
                                     {item.VoucherDate
                                       ? new Date(item.VoucherDate).toLocaleDateString()
                                       : ""}
                                   </td>
-
                                   <td className="px-4 py-2">{item.VoucherNumber}</td>
                                   <td className="px-4 py-2">{item.PaidAmount}</td>
                                   <td className="px-4 py-2">{pending}</td>
@@ -777,6 +741,7 @@ const NewAdvanceform = ({ context }: any) => {
                   </div>
                 </div>
               </div>
+
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Advance History(to be PO Specific)</label>
               </div>
@@ -810,7 +775,6 @@ const NewAdvanceform = ({ context }: any) => {
                                 Number(item.RequestAdvanceAmount || 0) -
                                 Number(item.PaidAmount || 0),
                               );
-
                               return (
                                 <tr key={index}>
                                   <td className="px-4 py-2">{item.PONumber}</td>
@@ -838,6 +802,7 @@ const NewAdvanceform = ({ context }: any) => {
                   </div>
                 </div>
               </div>
+
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Upload Docuement</label>
               </div>
@@ -845,18 +810,31 @@ const NewAdvanceform = ({ context }: any) => {
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">Attachment</label>
-                    <input type="file" className="form-control" multiple onChange={(e) => { if (e.target.files) { setAttachments(Array.from(e.target.files)); } }} />
+                    <input
+                      type="file"
+                      className="form-control"
+                      multiple
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          setAttachments(Array.from(e.target.files));
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
+
               <div style={{ display: "flex", justifyContent: "center", gap: "5px", marginBottom: "1rem", marginTop: "1rem" }}>
+                {/* ✅ Submit — onClose navigates back to dashboard */}
                 <a onClick={handleSubmit} className="submit-btn">
                   Submit
                 </a>
+                {/* ✅ Draft — onClose navigates back to dashboard */}
                 <a onClick={handledraft} className="Rework-btn">
                   Save as Draft
                 </a>
-                <a href="#" onClick={handleExit} className="reset-btn">
+                {/* ✅ Exit — onClose navigates back to dashboard */}
+                <a onClick={handleExit} className="reset-btn">
                   Exit
                 </a>
               </div>
