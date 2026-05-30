@@ -1,0 +1,317 @@
+.Canvas {
+    display: block !important;
+}
+
+.c_XTVxy_hHQBj {
+    padding: 0 !important;
+}
+
+.ControlZone {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+
+.CanvasComponent.LCS .CanvasZone {
+    padding: 0 !important;
+}
+
+.CanvasComponent.LCS .CanvasSection-col {
+    padding-left: 0 !important;
+}
+
+.sidebarmenu h3 {
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+
+/* Active class */
+.sidebarmenu .active {
+    background: white;
+    color: black;
+    font-weight: bold;
+}
+
+.d-left img {
+    width: 60px;
+}
+
+.d-left {
+    float: left;
+}
+
+.d-right {
+    float: right;
+}
+
+.d-right img {
+    width: 27px;
+}
+
+.userinfo {
+    display: inline-block;
+    width: 89%;
+    text-align: right;
+    padding: 4px 0;
+}
+
+.hederbox {
+    background: #fff;
+    padding: 0 20px !important;
+}
+
+.subsection {
+    padding: 20px;
+    background: #f5f5f5;
+    height: 90%;
+}
+
+h3 {
+    font-size: 1rem !important;
+}
+
+.CanvasComponent.LCS .row {
+    margin: 0 !important;
+}
+
+.titlebox {
+    color: red;
+    font-size: 16px;
+    font-weight: 600;
+    padding-top: 8px;
+}
+
+.pr-0 {
+    padding-right: 0 !important;
+}
+
+.newrequestbtn {
+    background: black;
+    color: white;
+    padding: 10px 16px;
+
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 5px;
+}
+
+.data-table-section th,
+.data-table-section td {
+    border: none !important;
+}
+
+input {
+    outline: none !important;
+}
+
+.container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+}
+
+
+.sidebar {
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    font-family: Arial, sans-serif;
+    height: auto;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    width: 250px;
+}
+
+.sidehead {
+    align-items: center;
+    border-bottom: 1px solid hsla(0, 0%, 100%, .2);
+    display: flex;
+    padding: 12px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 0 10px;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.sidehead img {
+    height: 40px;
+    object-fit: contain;
+    width: 40px;
+}
+
+.sidehead-right {
+    margin-left: 10px;
+}
+
+.sidehead-user {
+    align-items: center;
+    border-bottom: 1px solid hsla(0, 0%, 100%, .2);
+    display: flex;
+    font-weight: 600;
+}
+
+.sidehead-user i {
+    background-color: rgba(0, 0, 0, .7);
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    list-style: none;
+    padding: 0;
+}
+
+.nav-item {
+    border-bottom: 3px solid rgba(120, 107, 194, .3);
+    margin: 0;
+}
+
+.nav-link.active {
+    background: linear-gradient(90deg, #3c3e45, #1c1d1d);
+    font-weight: 700;
+}
+
+.nav-link.active:before {
+    border-right: 17px solid #ddd;
+    right: 0;
+    z-index: 1;
+}
+
+.nav-link.active:after,
+.nav-link.active:before {
+    border-bottom: 17px solid transparent;
+    border-top: 17px solid transparent;
+    content: "";
+    position: absolute;
+    top: 8px;
+}
+
+.nav-link {
+    align-items: center;
+    color: #fff !important;
+    cursor: pointer !important;
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px !important;
+    position: relative;
+    text-decoration: none !important;
+    transition: background-color .3s ease;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.custom-table th {
+    background-color: #000;
+    color: #fff;
+}
+
+.custom-table th,
+.custom-table td {
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.header {
+    background: linear-gradient(90deg, #3c3e45, #2d2d2d);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    width: 99.2%;
+    z-index: 999;
+}
+
+.logo-text h2 {
+    color: #fff;
+    font-size: 18px;
+    margin: 0;
+}
+
+.mainsecond {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 5px;
+}
+
+.mainsecondsmall {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mainsecondapprove {
+    display: flex;
+    align-items: center;
+    margin: 5px 7px;
+    justify-content: space-between;
+}
+
+.create-button {
+    align-items: center;
+    background-color: #000;
+    border: none;
+    border-radius: 6px;
+    color: #fff !important;
+    cursor: pointer;
+    display: flex;
+    font-size: 14px;
+    padding: 8px 16px;
+    text-decoration: none;
+}
+
+#spCommandBar,
+#spSiteHeader,
+#spLeftNav,
+.ommandBarWrapper,
+.sp-appBar,
+#CommentsWrapper {
+    display: none !important;
+}
+
+.form-control {
+    font-size: 13px !important;
+    height: 32px;
+}
+
+.formtext-control {
+    font-size: 13px;
+    height: 32px;
+    padding: 0;
+}
+
+.CanvasZone {
+    display: block !important;
+    width: 100% !important;
+    padding: 0px !important;
+}
+
+.CanvasZoneSectionContainer {
+    max-width: 100% !important;
+    padding: 0px !important;
+}
+
+.CanvasSection {
+    padding: 0px !important;
+}

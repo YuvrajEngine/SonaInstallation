@@ -1,0 +1,21 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "18.20.8",
+    "sdksVersions": {
+      "@microsoft/microsoft-graph-client": "3.0.2",
+      "@microsoft/teams-js": "2.24.0"
+    },
+    "version": "1.20.0",
+    "libraryName": "installation-commision",
+    "libraryId": "9fe39120-e883-44c0-a5f8-0ce0380b5b44",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "installation-commision",
+    "solutionShortDescription": "installation-commision description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "installation-commision-client-side-solution",
+    "id": "9fe39120-e883-44c0-a5f8-0ce0380b5b44",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.20.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "installation-commision description"
+      },
+      "longDescription": {
+        "default": "installation-commision description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "installation-commision Feature",
+        "description": "The feature that activates elements of the installation-commision solution.",
+        "id": "71aedc1e-d5d4-4403-9418-fc64893fbcb7",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/installation-commision.sppkg"
+  }
+}

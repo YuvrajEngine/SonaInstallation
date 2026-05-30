@@ -1,0 +1,314 @@
+.form-container {
+  max-width: 1100px;
+  margin: auto;
+  font-family: "Segoe UI", sans-serif;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+input,
+select,
+textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+}
+
+textarea {
+  min-height: 80px;
+  margin-top: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+th {
+  background: #f4f4f4;
+}
+
+.actions {
+  text-align: right;
+}
+
+button {
+  padding: 10px 20px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.primary {
+  background: #0078d4;
+  color: white;
+}
+
+.secondary {
+  background: #ccc;
+}
+
+.approval-flow {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+.displayWF {
+    background-color: #333 !important;
+    color: #000 !important;
+    gap: 6px;
+    padding: 0 10px;
+}
+.approval-step {
+  // padding: 10px;
+  // border: 1px solid #ccc;
+  // border-radius: 6px;
+  // min-width: 120px;
+  // text-align: center;
+
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 25px, calc(100% - 20px) 50px, 0 50px, 20px 25px);
+  color: #fff;
+  display: block;
+  flex: 1;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  height: 100%;
+  line-height: 50px;
+  margin: 8px 0;
+  overflow: hidden;
+  padding: 0 20px 0 30px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.approval-step.active {
+  // border: 2px solid orange;
+  background: orange;
+}
+
+.approval-step.approved {
+  // border: 2px solid green;
+  background: green;
+}
+
+.approval-step.rejected {
+  // border: 2px solid red;
+  background: red;
+}
+
+.approval-step.sendback {
+  // border: 2px solid #007bff;
+  background: #007bff;
+}
+
+.workflow-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+
+
+.Main-Boxpoup {
+  background-color: #fff;
+  border: none !important;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .3), 0 1px 3px 1px rgba(60, 64, 67, .15);
+  vertical-align: top;
+  width: 100%;
+}
+
+.bordered {
+  align-items: center;
+  background: #000;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  display: flex;
+  height: 65px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.bordered img {
+  height: 40px;
+  width: 65px;
+}
+
+.bordered h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  left: 50%;
+  margin: 0;
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.borderedbox {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  border-top: 0 !important;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .2);
+  overflow: hidden;
+  padding: 10px 20px 0;
+  position: relative;
+}
+
+.heading1 {
+  align-items: center;
+  background: linear-gradient(90deg, #000, #bea1a1);
+  clip-path: polygon(0 0, 60% 0, 100% 100%, 0 100%);
+  color: #fff;
+  display: flex;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  height: 35px;
+  padding-left: 15px;
+  position: relative;
+  width: 360px;
+}
+
+label {
+  font-weight: 600;
+}
+
+.main-formcontainer {
+  border: 1px solid #a9a9a9;
+  box-shadow: 0 1px 1px rgba(9, 30, 66, .25), 0 0 1px 1px rgba(9, 30, 66, .13);
+  margin: 0 !important;
+  padding: 10px 15px;
+  width: 100%;
+}
+
+.font {
+  padding: 5px 0;
+}
+
+.fonttext {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.textbox {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  width: 100%;
+}
+
+.form-control {
+  height: 32px;
+  font-size: 13px;
+}
+
+.mb-20 {
+  margin-bottom: 15px !important;
+}
+
+.formtext-control {
+  padding: 0px;
+  height: 32px;
+  font-size: 13px;
+}
+
+.formtext-control.readonly {
+  border-radius: 6px;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, .12), inset 0 -1px 0 hsla(0, 0%, 100%, .7);
+  cursor: not-allowed;
+  font-size: 13px;
+  outline: none;
+  padding: 6px 10px;
+  pointer-events: none;
+}
+
+
+.form-control.readonly {
+  border-radius: 6px;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, .12), inset 0 -1px 0 hsla(0, 0%, 100%, .7);
+  cursor: not-allowed;
+  font-size: 13px;
+  outline: none;
+  padding: 6px 10px;
+  pointer-events: none;
+}
+
+.submit-btn {
+  padding: 6px 16px;
+  background: green;
+  color: rgb(255, 255, 255) !important;
+  font-size: 14px;
+  border: 1px solid green;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.Rework-btn {
+  padding: 6px 16px;
+  background: #f4840a;
+  color: rgb(255, 255, 255) !important;
+  font-size: 14px;
+  border: 1px solid #f4840a;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.Reject-btn {
+  padding: 8px 16px;
+  background: #ff0000;
+  border: 1px solid #ff0000;
+  color: rgb(255, 255, 255) !important;
+  font-size: 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-decoration: none;
+  margin: 0px 5px;
+}
+
+.reset-btn {
+  padding: 6px 16px;
+  background: rgb(179, 25, 25);
+  color: rgb(255, 255, 255) !important;
+  font-size: 14px;
+  border: 1px solid rgb(179, 25, 25);
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+}
