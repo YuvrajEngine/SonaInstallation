@@ -34,7 +34,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
   const [employeeName, setEmployeeName] = React.useState("");
   const [pickerKey, setPickerKey] = React.useState<number>(0);
   const [vendors, setVendors] = useState<IVendor[]>([]);
-
+  const [selectedVendorCode, setSelectedVendorCode] = useState("");
   const [selectedUser, setSelectedUser] = useState<any[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
   const [selectedVendorName, setSelectedVendorName] = useState("");
@@ -436,35 +436,30 @@ const NewAdvanceform = ({ context, onClose }: any) => {
         },
       ];
 
+      const selectedVendor = vendors.find((v) => v.Id === selectedVendorId);
+
       await sp.web.lists.getByTitle("Installation").items.add({
         Title: PaymentId,
         PaymentId: PaymentId,
-
         EmployeeCode: employee.EmployeeCode || "",
         EmployeeName: employee.EmployeeName || "",
         Division: employee.Division || "",
         Location: employee.Location || "",
         Email: employee.EmployeeEmail || "",
-
         ReportingManager: employee.ReportingManager?.Title || "",
         HOD: employee.HOD?.Title || "",
         ContactNo: employee.ContactNo || "",
         EmployeeStatus: employee.EmployeeStatus || "",
-
-        VendorCode: selectedVendorId ? selectedVendorId.toString() : "",
-
-        VendorName: selectedVendorName || "",
-
+        VendorCode: selectedVendor?.VendorCode || "",
+        VendorName: selectedVendor?.VendorName || "",
         PONumber: poNumber || "",
         POdate: poDate ? new Date(poDate) : null,
         POPaymentTerms: poTerms || "",
         POAmount: poAmount || "",
-
         TotalPaymentofProject: advanceAmount || "0",
         GSTAdjustmentifAny: gstAdjustment || "0",
         OtherAdjustmentifany: otherAdjustment || "0",
         TotalamounttobeCapitalized: paidAmount || "0",
-
         Status: "Pending for Approval",
         ApprovalMatrix: JSON.stringify(flow),
         CurrentApproverId: currentApproverId,
@@ -544,8 +539,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
         ContactNo: employee.ContactNo || "",
         EmployeeStatus: employee.EmployeeStatus || "",
 
-        VendorCode: selectedVendorId ? selectedVendorId.toString() : "",
-
+        VendorCode: selectedVendorCode,
         VendorName: selectedVendorName || "",
 
         PONumber: poNumber || "",
@@ -724,6 +718,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                         const id = Number(e.target.value);
                         const vendor = vendors.find((v) => v.Id === id);
                         setSelectedVendorId(id);
+                        setSelectedVendorCode(vendor?.VendorCode || "");
                         setSelectedVendorName(vendor?.VendorName || "");
                         if (id) {
                           void getPreviousAdvances(id);

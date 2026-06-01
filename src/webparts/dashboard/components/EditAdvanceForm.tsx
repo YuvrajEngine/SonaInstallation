@@ -10,6 +10,7 @@ import {
 import { IPeoplePickerContext } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 
 import logo from "../assets/sona-comstarlogo.png";
+import Swal from "sweetalert2";
 
 interface IVendor {
   Id: number;
@@ -39,7 +40,7 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
   const [POAmount, setPOAmount] = useState("");
   const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
   const [selectedVendorName, setSelectedVendorName] = useState("");
-
+  const [selectedVendorCode, setSelectedVendorCode] = useState("");
   const [poNumber, setPoNumber] = useState("");
   const [poDate, setPoDate] = useState("");
   const [poTerms, setPoTerms] = useState("");
@@ -198,13 +199,48 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
     }
   };
 
-  // =========================
-  // UPLOAD FILES
-  // =========================
+  const deleteAttachment = async (fileName: string) => {
+    const result = await Swal.fire({
+      title: "Delete Attachment?",
+      text: `Are you sure you want to delete "${fileName}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+    });
 
-  // =========================
+    if (!result.isConfirmed) return;
+
+    try {
+      const safe = formData.PaymentId.replace(/\//g, "_");
+
+      const filePath = `/sites/SonaFinance/InstallationCommision/${safe}/${fileName}`;
+
+      await sp.web.getFileByServerRelativePath(filePath).delete();
+
+      await Swal.fire({
+        title: "Deleted",
+        text: "Attachment deleted successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      await getAttachments(formData.PaymentId);
+    } catch (error) {
+      console.error("Delete Error", error);
+
+      await Swal.fire({
+        title: "Error",
+        text: "Unable to delete attachment.",
+        icon: "error",
+      });
+    }
+  };
+  // UPLOAD FILES
+
   // VALIDATION
-  // =========================
 
   const validateForm = () => {
     const errors: string[] = [];
@@ -373,7 +409,7 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
           ContactNo: employee.ContactNo || "",
           EmployeeStatus: employee.EmployeeStatus || "",
 
-          VendorCode: selectedVendorId ? selectedVendorId.toString() : "",
+          VendorCode: selectedVendorCode,
           VendorName: selectedVendorName || "",
 
           PONumber: PONumber || "",
@@ -388,16 +424,15 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
           ApprovalMatrix: JSON.stringify(flow),
           CurrentApproverId: currentApproverId,
 
-          Status: "Pending for Approver",
+          Status: "Pending for Approval",
         });
 
       if (selectedFiles.length > 0) {
         await uploadFiles();
       }
 
-      alert("Updated successfully ✅");
+      alert("Updated successfully");
 
-      // Navigate back to dashboard via parent component
       onClose();
     } catch (e) {
       console.error(e);
@@ -405,11 +440,9 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
     }
   };
 
-  // =========================
   // BIND DATA
-  // =========================
   useEffect(() => {
-    if (!formData) return;
+    if (!formData || vendors.length === 0) return;
 
     setPONumber(formData.PONumber || "");
     setPOdate(formData.POdate?.split("T")[0] || "");
@@ -419,17 +452,34 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
     setGSTAdjustmentifAny(formData.GSTAdjustmentifAny || "");
     setOtherAdjustmentifany(formData.OtherAdjustmentifany || "");
     setTotalamounttobeCapitalized(formData.TotalamounttobeCapitalized || "");
+
     setVendorName(formData.VendorName || "");
-    setSelectedVendorId(formData.VendorCodeId || null); // ✅ ADD THIS
-    setSelectedVendorName(formData.VendorName || ""); // ✅ ADD THIS
+
+    console.log("Saved VendorCode:", formData.VendorCode);
+    console.log("Vendor Master:", vendors);
+
+    // Match saved VendorCode with VendorMaster
+    const vendor = vendors.find(
+      (v) => String(v.VendorCode).trim() === String(formData.VendorCode).trim(),
+    );
+
+    console.log("Matched Vendor:", vendor);
+
+    if (vendor) {
+      setSelectedVendorId(vendor.Id);
+      setSelectedVendorName(vendor.VendorName);
+      setSelectedVendorCode(vendor.VendorCode);
+    } else {
+      setSelectedVendorId(null);
+      setSelectedVendorName(formData.VendorName || "");
+      setSelectedVendorCode(formData.VendorCode || "");
+    }
 
     setApproverRemarks(formData.ApproverRemarks || "");
     setVoucherDate(formData.VoucherDate?.split("T")[0] || "");
-    //setVouchingNumber(formData.VouchingNumber || "");
     setUTRDate(formData.UTRDate?.split("T")[0] || "");
     setUTRNumber(formData.UTRNumber || "");
 
-    // ✅ PIC FIX
     if (formData?.PICName?.Title) {
       setSelectedUser([
         {
@@ -442,7 +492,7 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
     if (formData.PaymentId) {
       void getAttachments(formData.PaymentId);
     }
-  }, [formData]);
+  }, [formData, vendors]);
 
   useEffect(() => {
     void getLoggedInUser();
@@ -581,9 +631,12 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                       className="formtext-control"
                       onChange={(e) => {
                         const id = Number(e.target.value);
+
                         const vendor = vendors.find((v) => v.Id === id);
+
                         setSelectedVendorId(id);
                         setSelectedVendorName(vendor?.VendorName || "");
+                        setSelectedVendorCode(vendor?.VendorCode || "");
                       }}
                     >
                       <option value="">Select Vendor</option>
@@ -722,7 +775,14 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                     {attachments.length > 0 && (
                       <ul>
                         {attachments.map((file: any, index: number) => (
-                          <li key={index}>
+                          <li
+                            key={index}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "10px",
+                            }}
+                          >
                             <a
                               href={file.ServerRelativeUrl}
                               target="_blank"
@@ -730,6 +790,18 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                             >
                               {file.Name}
                             </a>
+
+                            <span
+                              style={{
+                                color: "red",
+                                cursor: "pointer",
+                                fontWeight: "bold",
+                                fontSize: "16px",
+                              }}
+                              onClick={() => deleteAttachment(file.Name)}
+                            >
+                              ✖
+                            </span>
                           </li>
                         ))}
                       </ul>
