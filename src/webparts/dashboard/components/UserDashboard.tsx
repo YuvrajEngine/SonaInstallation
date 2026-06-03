@@ -50,12 +50,15 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
   };
 
   //GET LIST DATA
-  const getCapexData = async () => {
-    debugger;
+  const getCapexData = async (userName?: string) => {
+    const filterUser = userName || currentUserName;
+    if (!filterUser) return;
+
     try {
       const items = await sp.web.lists
         .getByTitle("Installation")
-        .items.select(
+        .items.filter(`EmployeeName eq '${filterUser}'`) // ✅ filters by logged-in user
+        .select(
           "ID",
           "Title",
           "Created",
@@ -144,6 +147,9 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
   };
 
   const filteredData = data.filter((item) => {
+    const isOwner =
+      item.EmployeeName?.toLowerCase() === currentUserName?.toLowerCase();
+    if (!isOwner) return false;
     const text = searchText.toLowerCase();
     const status = statusFilter.toLowerCase();
 
@@ -171,8 +177,18 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
   //LOAD DATA
   React.useEffect(() => {
     if (!context) return;
-    void getLoggedInUser();
-    void getCapexData();
+
+    const init = async () => {
+      try {
+        const user = await sp.web.currentUser();
+        setCurrentUserName(user.Title);
+        await getCapexData(user.Title); // ✅ pass name directly, avoids stale state
+      } catch (error) {
+        console.error("Init error:", error);
+      }
+    };
+
+    void init();
   }, [context]);
 
   // ✅ OPEN VIEW PAGE
