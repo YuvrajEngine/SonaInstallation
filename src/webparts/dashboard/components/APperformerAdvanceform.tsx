@@ -409,7 +409,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
       const currentIndex = flow.findIndex((a: any) => a.Id === currentUserId);
 
       if (currentIndex !== -1) {
-        flow[currentIndex].Status = "Rejected";
+        flow[currentIndex].Status = "Reject";
       }
 
       const history = itemData.WorkFlowHistory
@@ -418,7 +418,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
 
       history.push({
         CurrentApprover: context.pageContext.user.displayName,
-        ActionTaken: "Rejected",
+        ActionTaken: "Reject",
         Comment: approverRemarks,
         Date: new Date().toISOString(),
       });
@@ -434,7 +434,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
           OtherAdjustmentifany: otherAdjustment.toString(),
           TotalamounttobeCapitalized: totalCapitalizedAmount.toString(),
 
-          Status: "Rejected",
+          Status: "Reject",
 
           ApprovalMatrix: JSON.stringify(flow),
           WorkFlowHistory: JSON.stringify(history),
