@@ -106,19 +106,13 @@ const APperformerAdvanceform: React.FC<IProps> = ({
       void setAttachments([]);
     }
   };
-  // ✅ Fetch Item by ID
   const getItemById = async () => {
     try {
       const item = await sp.web.lists
         .getByTitle("Installation")
         .items.getById(itemId)();
-      // .select("*", "VendorCode/Id", "VendorCode/VendorCode")
-      //  .expand( "VendorCode")();
-      // 👈 ADD
-
       setItemData(item);
       setApproverRemarks("");
-      // ✅ FIX: Set VendorId + Name
       const matchedVendor = vendors.find(
         (v) => v.VendorCode === item.VendorCode,
       );
@@ -126,16 +120,13 @@ const APperformerAdvanceform: React.FC<IProps> = ({
       setSelectedVendorId(matchedVendor?.Id || null);
       setSelectedVendorName(item.VendorName || "");
 
-      // 🔥 IMPORTANT
-      setSelectedVendorName(item.VendorName); // optional
+      setSelectedVendorName(item.VendorName); 
       setGstAdjustment(Number(item.GSTAdjustmentifAny || 0));
       setOtherAdjustment(Number(item.OtherAdjustmentifany || 0));
 
-      // ✅ FETCH ATTACHMENTS
       if (item.CapexID) {
         await getAttachments(item.CapexID);
       }
-      // ✅ Approval Matrix
       if (item.ApprovalMatrix) {
         try {
           const parsed =
@@ -152,7 +143,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         setApprovalMatrix([]);
       }
 
-      // ✅ Workflow History
       if (item.WorkFlowHistory) {
         try {
           const parsed =
@@ -195,12 +185,12 @@ const APperformerAdvanceform: React.FC<IProps> = ({
     if (vendor) {
       setSelectedVendorId(vendor.Id);
       setSelectedVendorName(vendor.VendorName);
-      setSelectedVendorCode(vendor.VendorCode); // ← add this line
+      setSelectedVendorCode(vendor.VendorCode); 
       void getPreviousAdvances(vendor.Id);
     } else {
       setSelectedVendorId(null);
       setSelectedVendorName(itemData.VendorName || "");
-      setSelectedVendorCode(itemData.VendorCode || ""); // ← add this line
+      setSelectedVendorCode(itemData.VendorCode || ""); 
     }
   }, [itemData, vendors]);
 
@@ -264,7 +254,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
     }
   };
 
-  // ✅ Sent Back
+  //Sent Back
   const handleSendBack = async () => {
     try {
       if (!voucherDate || !voucherNumber || !approverRemarks?.trim()) {
@@ -276,7 +266,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         return;
       }
 
-      // 🔥 FLOW
       const flow = itemData.ApprovalMatrix
         ? JSON.parse(itemData.ApprovalMatrix)
         : [];
@@ -289,14 +278,12 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         flow[currentIndex].Status = "Send Back";
       }
 
-      // 🔥 MOVE BACK (optional)
       let previousApproverId = null;
       if (flow[currentIndex - 1]) {
         flow[currentIndex - 1].Status = "In Progress";
         previousApproverId = flow[currentIndex - 1].Id;
       }
 
-      // 🔥 HISTORY
       const history = itemData.WorkFlowHistory
         ? JSON.parse(itemData.WorkFlowHistory)
         : [];
@@ -360,7 +347,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         flow[currentIndex].Status = "Rejected";
       }
 
-      // 🔥 HISTORY
       const history = itemData.WorkFlowHistory
         ? JSON.parse(itemData.WorkFlowHistory)
         : [];
@@ -404,7 +390,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
     onClose();
   };
 
-  // ⛔ Wait until data loads
   if (!itemData) return <div>Loading...</div>;
 
   return (
