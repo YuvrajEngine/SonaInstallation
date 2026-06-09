@@ -375,71 +375,88 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
   // UPDATE
   // =========================
 
-  const handleSave = async (
-    status: "Save as Draft" | "Pending for Approval",
-  ) => {
+const handleSave = async (
+  status: "Save as Draft" | "Pending for Approval",
+) => {
+  try {
+    const confirmation =
+      status === "Save as Draft"
+        ? await Swal.fire({
+            title: "Save as Draft?",
+            text: "Do you want to save this request as Draft?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Save Draft",
+            cancelButtonText: "Cancel",
+          })
+        : await Swal.fire({
+            title: "Submit Request?",
+            text: "Do you want to submit this request for approval?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Submit",
+            cancelButtonText: "Cancel",
+          });
+
+    if (!confirmation.isConfirmed) return;
+
+    const flow = await buildApprovalFlow();
+
+    const currentApproverId =
+      status === "Pending for Approval" && flow.length > 0
+        ? flow[0].Id
+        : null;
+
+    const existingHistoryRaw = formData?.WorkFlowHistory || "[]";
+    let existingHistory: any[] = [];
     try {
-      const confirmation =
-        status === "Save as Draft"
-          ? await Swal.fire({
-              title: "Save as Draft?",
-              text: "Do you want to save this request as Draft?",
-              icon: "question",
-              showCancelButton: true,
-              confirmButtonText: "Save Draft",
-              cancelButtonText: "Cancel",
-            })
-          : await Swal.fire({
-              title: "Submit Request?",
-              text: "Do you want to submit this request for approval?",
-              icon: "question",
-              showCancelButton: true,
-              confirmButtonText: "Submit",
-              cancelButtonText: "Cancel",
-            });
-
-      if (!confirmation.isConfirmed) return;
-
-      const flow = await buildApprovalFlow();
-
-      const currentApproverId =
-        status === "Pending for Approval" && flow.length > 0
-          ? flow[0].Id
-          : null;
-
-      await sp.web.lists
-        .getByTitle("Installation")
-        .items.getById(formData.ID)
-        .update({
-          Status: status,
-          ApprovalMatrix: JSON.stringify(flow),
-          CurrentApproverId: currentApproverId,
-        });
-
-      if (selectedFiles.length > 0) {
-        await uploadFiles();
-      }
-
-      await Swal.fire({
-        title: "Success",
-        text:
-          status === "Save as Draft"
-            ? "Draft Saved Successfully"
-            : "Submitted Successfully",
-        icon: "success",
-      });
-
-      onClose();
-    } catch (error) {
-      console.error(error);
-
-      await Swal.fire({
-        title: "Error",
-        text: "Something went wrong.",
-        icon: "error",
-      });
+      existingHistory = JSON.parse(existingHistoryRaw);
+      if (!Array.isArray(existingHistory)) existingHistory = [];
+    } catch {
+      existingHistory = [];
     }
-  };
+
+    existingHistory.push({
+      CurrentApprover: employee.EmployeeName || "",
+      ActionTaken: status === "Save as Draft" ? "Saved as Draft" : "Submitted",
+      Comment: status === "Save as Draft" ? "Saved as draft" : "Request submitted",
+      Date: new Date().toISOString(),
+    });
+
+    await sp.web.lists
+      .getByTitle("Installation")
+      .items.getById(formData.ID)
+      .update({
+        Status: status,
+        ApprovalMatrix: JSON.stringify(flow),
+        CurrentApproverId: currentApproverId,
+        WorkFlowHistory: JSON.stringify(existingHistory), 
+      });
+
+    if (selectedFiles.length > 0) {
+      await uploadFiles();
+    }
+
+    await Swal.fire({
+      title: "Success",
+      text:
+        status === "Save as Draft"
+          ? "Draft Saved Successfully"
+          : "Submitted Successfully",
+      icon: "success",
+    });
+
+    onClose();
+  } catch (error) {
+    console.error(error);
+
+    await Swal.fire({
+      title: "Error",
+      text: "Something went wrong.",
+      icon: "error",
+    });
+  }
+};
 
   // BIND DATA
   useEffect(() => {
