@@ -804,7 +804,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                       }
                     />
                   </div>
-                  <div className="col-md-4">
+                  {/* <div className="col-md-4">
                     <label className="font">Gst Adjustment(Any)</label>
                     <input
                       value={gstAdjustment}
@@ -823,7 +823,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                         handleNumberChange(e.target.value, setOtherAdjustment)
                       }
                     />
-                  </div>
+                  </div> */}
                 </div>
                 <div className="row mb-20">
                   <div className="col-md-4">
