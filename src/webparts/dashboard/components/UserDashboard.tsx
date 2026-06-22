@@ -6,13 +6,8 @@ import EditAdvanceForm from "./EditAdvanceForm";
 
 import { useState } from "react";
 
-// import sonalogo from "../assets/SonaPNGLogo.png";
-// import userlogo from "../assets/userlogo.png";
-// import "../assets/bootstrap/css/bootstrap.css";
-
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// import "../assets/bootstrap/css/";
 import logo from "../assets/SonaPNGLogo.png";
 import Edit from "../assets/Pencil.png";
 import View from "../assets/Eye.png";
@@ -37,32 +32,24 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
   const [showForm, setShowForm] = React.useState(false);
   const [data, setData] = React.useState<any[]>([]);
   const [currentUserName, setCurrentUserName] = React.useState("");
+  const [currentUserEmail, setCurrentUserEmail] = React.useState("");
   const [selectedItem, setSelectedItem] = React.useState<any>(null);
 
-  // ✅ GET CURRENT USER
-  const getLoggedInUser = async () => {
-    try {
-      const user = await sp.web.currentUser();
-      setCurrentUserName(user.Title);
-    } catch (error) {
-      console.error("User error:", error);
-    }
-  };
-
-  //GET LIST DATA
-  const getCapexData = async (userName?: string) => {
-    const filterUser = userName || currentUserName;
-    if (!filterUser) return;
+  const getCapexData = async (userEmail?: string) => {
+    const filterEmail = userEmail || currentUserEmail;
+    if (!filterEmail) return;
 
     try {
       const items = await sp.web.lists
         .getByTitle("Installation")
-        .items.filter(`EmployeeName eq '${filterUser}'`) // ✅ filters by logged-in user
+        .items
+        .filter(`Email eq '${filterEmail}'`)
         .select(
           "ID",
           "Title",
           "Created",
           "EmployeeName",
+          "Email",       
           "VendorName",
           "VendorCode",
           "PONumber",
@@ -82,6 +69,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
           ? new Date(item.Created).toLocaleDateString("en-GB")
           : "",
         EmployeeName: item.EmployeeName || "",
+        Email: item.Email || "",  
         VendorName: item.VendorName || "",
         VendorCode: item.VendorCode || "",
         PONumber: item.PONumber || "",
@@ -96,22 +84,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     }
   };
 
-  // ✅ VIEW CLICK
-  const handleViewClick1 = async (item: any) => {
-    try {
-      const fullItem = await sp.web.lists
-        .getByTitle("Installation")
-        .items.getById(item.ID)
-        .select("*", "PICName/Title")
-        .expand("PICName")();
-
-      setSelectedItem(fullItem);
-      setFormType("view");
-      setShowForm(true);
-    } catch (error) {
-      console.error("View error:", error);
-    }
-  };
   const handleViewClick = async (item: any) => {
     try {
       const fullItem = await sp.web.lists
@@ -146,10 +118,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     }
   };
 
+  // ✅ UPDATED: filter uses email for ownership check (more reliable than name)
   const filteredData = data.filter((item) => {
     const isOwner =
-      item.EmployeeName?.toLowerCase() === currentUserName?.toLowerCase();
+      item.Email?.toLowerCase() === currentUserEmail?.toLowerCase();
     if (!isOwner) return false;
+
     const text = searchText.toLowerCase();
     const status = statusFilter.toLowerCase();
 
@@ -174,7 +148,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     );
   });
 
-  //LOAD DATA
   React.useEffect(() => {
     if (!context) return;
 
@@ -182,7 +155,9 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
       try {
         const user = await sp.web.currentUser();
         setCurrentUserName(user.Title);
-        await getCapexData(user.Title); // ✅ pass name directly, avoids stale state
+        // ✅ Store email and pass it to getCapexData
+        setCurrentUserEmail(user.Email);
+        await getCapexData(user.Email);
       } catch (error) {
         console.error("Init error:", error);
       }
@@ -191,7 +166,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     void init();
   }, [context]);
 
-  // ✅ OPEN VIEW PAGE
   if (showForm) {
     if (formType === "view") {
       return (
@@ -391,7 +365,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
                               <img src={View} width={15} alt="View" />
                             </span>
 
-                            {/* Edit Icon */}
+                            {/* Edit Icon — only for Draft or Send Back */}
                             {(item.status?.toLowerCase() === "save as draft" ||
                               item.status?.toLowerCase() === "send back") && (
                               <span
@@ -414,7 +388,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
                           </td>
                           <td className="px-4 py-2">
                             {item.CurrentApprover || "-"}
-                          </td>{" "}
+                          </td>
                           <td className="px-4 py-2">{item.status}</td>
                         </tr>
                       ))

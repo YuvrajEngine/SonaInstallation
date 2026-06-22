@@ -453,3 +453,158 @@ label {
   cursor: pointer;
   text-decoration: none;
 }
+
+/* ===================================================
+   ADDITIONAL CSS FOR INSTALLATION FORM UPDATES
+   Add these styles to your existing advanced.scss
+   =================================================== */
+
+/* Computed / readonly field highlight */
+.computed-field {
+  background-color: #eaf4fb !important;
+  border-color: #000000 !important;
+  font-weight: 600;
+  color: #000000;
+}
+
+/* GST Capitalized checkbox row */
+.gst-capitalized-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  flex-wrap: nowrap;
+}
+
+.gst-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #1a5276;
+  flex-shrink: 0;
+}
+
+.gst-checkbox-label {
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  margin-bottom: 0 !important;
+  line-height: 1.4;
+}
+
+/* Info icon */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #973a3a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.info-icon:hover {
+  background-color: #ff0000;
+}
+
+/* Tooltip for info icon */
+.info-tooltip {
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #000000;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: normal;
+  width: 220px;
+  text-align: center;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.info-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1a5276;
+}
+
+/* Asset Codes container */
+.asset-codes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 600px;
+}
+
+.asset-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.asset-code-input {
+  flex: 1;
+  max-width: 300px;
+}
+
+.asset-code-remove-btn {
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+  transition: background-color 0.2s;
+}
+
+.asset-code-remove-btn:hover:not(:disabled) {
+  background-color: #c0392b;
+}
+
+.asset-code-remove-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.asset-code-add-btn {
+  background-color: #27ae60;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.asset-code-add-btn:hover {
+  background-color: #1e8449;
+}

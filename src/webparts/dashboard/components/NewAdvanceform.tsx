@@ -17,12 +17,19 @@ interface IVendor {
   VendorCode: string;
   VendorName: string;
 }
+
 interface IPOData {
   Id: number;
   PONumber: string;
   PODate: string;
-  POAdvanceTerms: string;
-  POAmtGST: string;
+  POPaymentTerms: string;
+  POAmount: string;
+  MRNNumber: string;
+  MRNDtae: string;
+  MRNAmountwithGST: string;
+  RequestedAmountforPayment: string;
+  VoucherDate: string;
+  VoucherNumber: string;
 }
 
 const NewAdvanceform = ({ context, onClose }: any) => {
@@ -30,6 +37,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
   const [employee, setEmployee] = React.useState<any>({});
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previousAdvances, setPreviousAdvances] = useState<any[]>([]);
+  const [advanceHistory, setAdvanceHistory] = useState<any[]>([]);
   const [data, setData] = React.useState<any[]>([]);
   const [employeeName, setEmployeeName] = React.useState("");
   const [pickerKey, setPickerKey] = React.useState<number>(0);
@@ -45,22 +53,38 @@ const NewAdvanceform = ({ context, onClose }: any) => {
   const [poDate, setPoDate] = useState("");
   const [poTerms, setPoTerms] = useState("");
 
+  // New PO Amount fields
+  const [poAmountBasic, setPoAmountBasic] = useState("");
+  const [poAmountGST, setPoAmountGST] = useState("");
+  const [poAmountOther, setPoAmountOther] = useState("");
+
+  // MRN Amount Basic
+  const [mrnAmountBasic, setMrnAmountBasic] = useState("");
+
+  // Asset codes (multiple)
+  const [assetCodes, setAssetCodes] = useState<string[]>([""]);
+
+  // GST capitalization tickbox
+  const [gstToBeCapitalized, setGstToBeCapitalized] = useState(false);
+  const [showGstTooltip, setShowGstTooltip] = useState(false);
+
   const [expectedDate, setExpectedDate] = useState("");
   const [glCode, setGlCode] = useState("FIN-001");
   const [costCenter, setCostCenter] = useState("");
   const [remarks, setRemarks] = useState("");
   const [projectDesc, setProjectDesc] = useState("");
   const [advanceAmount, setAdvanceAmount] = useState("");
-  const [gstAdjustment, setGstAdjustment] = useState("");
-  const [otherAdjustment, setOtherAdjustment] = useState("");
   const [approverDetails, setApproverDetails] = useState<any[]>([]);
   const [approvers, setApprovers] = useState<number[]>([]);
 
-  const paidAmount = (
-    Number(advanceAmount || 0) +
-    Number(gstAdjustment || 0) +
-    Number(otherAdjustment || 0)
+  // PO Amount Total computed
+  const poAmountTotal = (
+    Number(poAmountBasic || 0) +
+    Number(poAmountGST || 0) +
+    Number(poAmountOther || 0)
   ).toFixed(2);
+
+  const paidAmount = Number(advanceAmount || 0).toFixed(2);
 
   const peoplePickerContext: IPeoplePickerContext = {
     absoluteUrl: context.pageContext.web.absoluteUrl,
@@ -75,33 +99,115 @@ const NewAdvanceform = ({ context, onClose }: any) => {
     }
   };
 
+  // Asset code handlers
+  const handleAssetCodeChange = (index: number, value: string) => {
+    const updated = [...assetCodes];
+    updated[index] = value;
+    setAssetCodes(updated);
+  };
+
+  const addAssetCode = () => {
+    setAssetCodes([...assetCodes, ""]);
+  };
+
+  const removeAssetCode = (index: number) => {
+    if (assetCodes.length === 1) return;
+    const updated = assetCodes.filter((_, i) => i !== index);
+    setAssetCodes(updated);
+  };
+
+  // Fetch PO list from CapexPayment where Status = 'Paid'
   const getPaidPOs = async () => {
     try {
-      debugger;
-      const data = await sp.web.lists
-        .getByTitle("CapexAdvance")
+      const result = await sp.web.lists
+        .getByTitle("CapexPayment")
         .items.select(
           "Id",
           "PONumber",
           "PODate",
-          "POAdvanceTerms",
-          "POAmtGST",
+          "POPaymentTerms",
+          "POAmount",
+          "MRNNumber",
+          "MRNDtae",
+          "MRNAmountwithGST",
+          "RequestedAmountforPayment",
+          "VoucherDate",
+          "VoucherNumber",
           "Status",
         )
         .filter(`Status eq 'Paid'`)
         .orderBy("Created", false)
         .top(500)();
 
-      const uniquePOs = data.filter(
-        (item, index, self) =>
+      const uniquePOs = result.filter(
+        (item: any, index: number, self: any[]) =>
           item.PONumber &&
-          index === self.findIndex((x) => x.PONumber === item.PONumber),
+          index === self.findIndex((x: any) => x.PONumber === item.PONumber),
       );
 
       setPoList(uniquePOs);
     } catch (error) {
-      console.log("Error fetching PO list:", error);
+      console.log("Error fetching PO list from CapexPayment:", error);
       setPoList([]);
+    }
+  };
+
+  // Fetch Past MRN Details from CapexPayment based on PONumber
+  const getPastMRNDetails = async (selectedPONumber: string) => {
+    try {
+      if (!selectedPONumber) {
+        setPreviousAdvances([]);
+        return;
+      }
+      const result = await sp.web.lists
+        .getByTitle("CapexPayment")
+        .items.select(
+          "PONumber",
+          "PODate",
+          "POAmount",
+          "MRNNumber",
+          "MRNDtae",
+          "MRNAmountwithGST",
+          "RequestedAmountforPayment",
+          "VoucherDate",
+          "VoucherNumber",
+          "Status",
+        )
+        .filter(`PONumber eq '${selectedPONumber}' and Status eq 'Paid'`)
+        .orderBy("Created", false)();
+
+      setPreviousAdvances(result);
+    } catch (error) {
+      console.error("Error fetching Past MRN Details:", error);
+      setPreviousAdvances([]);
+    }
+  };
+
+  // Fetch Advance History from CapexAdvance based on PONumber
+  const getAdvanceHistory = async (selectedPONumber: string) => {
+    try {
+      if (!selectedPONumber) {
+        setAdvanceHistory([]);
+        return;
+      }
+      const result = await sp.web.lists
+        .getByTitle("CapexAdvance")
+        .items.select(
+          "PONumber",
+          "RequestAdvanceAmount",
+          "Created",
+          "VoucherDate",
+          "PaidAmount",
+          "VouchingNumber",
+          "Status",
+        )
+        .filter(`PONumber eq '${selectedPONumber}'`)
+        .orderBy("Created", false)();
+
+      setAdvanceHistory(result);
+    } catch (error) {
+      console.error("Error fetching Advance History:", error);
+      setAdvanceHistory([]);
     }
   };
 
@@ -143,34 +249,6 @@ const NewAdvanceform = ({ context, onClose }: any) => {
       setData(formatted);
     } catch (error) {
       console.error("Data error:", error);
-    }
-  };
-
-  const getPreviousAdvances = async (vendorId: number) => {
-    try {
-      debugger;
-      console.log("Fetching for Vendor:", vendorId);
-
-      const data = await sp.web.lists
-        .getByTitle("CapexAdvance")
-        .items.select(
-          "PONumber",
-          "RequestAdvanceAmount",
-          "Created",
-          "VoucherDate",
-          "PaidAmount",
-          "Status",
-          "VendorCode/Id",
-        )
-        .expand("VendorCode")
-        .filter(`VendorCode/Id eq ${vendorId} and Status eq 'Paid'`)
-        .orderBy("Created", false)();
-
-      console.log("DATA:", data);
-      void setPreviousAdvances(data);
-    } catch (error) {
-      console.error("Error fetching previous advances:", error);
-      void setPreviousAdvances([]);
     }
   };
 
@@ -295,11 +373,9 @@ const NewAdvanceform = ({ context, onClose }: any) => {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
-
     if (month >= 4) {
       return (year + 1).toString().slice(-2);
     }
-
     return year.toString().slice(-2);
   };
 
@@ -329,7 +405,6 @@ const NewAdvanceform = ({ context, onClose }: any) => {
       return `INT/${fy}/${paddedNumber}`;
     } catch (error) {
       console.error("Generate Payment ID Error:", error);
-
       return `INT/${getFinancialYear()}/00001`;
     }
   };
@@ -377,7 +452,13 @@ const NewAdvanceform = ({ context, onClose }: any) => {
     }
 
     if (!advanceAmount || Number(advanceAmount) <= 0) {
-      errors.push("Total Payment for the Project must be greater than zero");
+      errors.push("Total Amount to be Capitalized must be greater than zero");
+    }
+
+    // Asset code: at least one non-empty value required
+    const filledAssetCodes = assetCodes.filter((c) => c.trim() !== "");
+    if (filledAssetCodes.length === 0) {
+      errors.push("At least one Asset Code is required");
     }
 
     if (!attachments || attachments.length === 0) {
@@ -385,6 +466,62 @@ const NewAdvanceform = ({ context, onClose }: any) => {
     }
 
     return errors;
+  };
+
+  const buildItemPayload = (
+    PaymentId: string,
+    flow: any[],
+    status: string,
+    actionTaken: string,
+  ) => {
+    const history = [
+      {
+        CurrentApprover: employee.EmployeeName,
+        ActionTaken: actionTaken,
+        Comment: remarks || actionTaken,
+        Date: new Date().toISOString(),
+      },
+    ];
+
+    const currentApproverId = flow.length > 0 ? flow[0].Id : null;
+    const selectedVendor = vendors.find((v) => v.Id === selectedVendorId);
+    const filledAssetCodes = assetCodes.filter((c) => c.trim() !== "");
+
+    return {
+      Title: PaymentId,
+      PaymentId: PaymentId,
+      EmployeeCode: employee.EmployeeCode || "",
+      EmployeeName: employee.EmployeeName || "",
+      Division: employee.Division || "",
+      Location: employee.Location || "",
+      Email: employee.EmployeeEmail || "",
+      ReportingManager: employee.ReportingManager?.Title || "",
+      HOD: employee.HOD?.Title || "",
+      ContactNo: employee.ContactNo || "",
+      EmployeeStatus: employee.EmployeeStatus || "",
+      VendorCode: selectedVendor?.VendorCode || "",
+      VendorName: selectedVendor?.VendorName || "",
+      PONumber: poNumber || "",
+      POdate: poDate ? new Date(poDate) : null,
+      POPaymentTerms: poTerms || "",
+      POAmount: poAmountTotal || "0",
+      // New fields — add these columns to the Installation list (see notes below)
+      MRNAmountBasic: mrnAmountBasic || "0",
+      POAmountBasic: poAmountBasic || "0",
+      POAmountGST: poAmountGST || "0",
+      POAmountOther: poAmountOther || "0",
+      POAmountTotal: poAmountTotal || "0",
+      AssetCodes: filledAssetCodes.join(", "),
+      GSTToBeCapitalized: gstToBeCapitalized ? "Yes" : "No",
+      TotalPaymentofProject: advanceAmount || "0",
+      GSTAdjustmentifAny: "0",
+      OtherAdjustmentifany: "0",
+      TotalamounttobeCapitalized: paidAmount || "0",
+      Status: status,
+      ApprovalMatrix: JSON.stringify(flow),
+      CurrentApproverId: currentApproverId,
+      WorkFlowHistory: JSON.stringify(history),
+    };
   };
 
   const handleSubmit = async () => {
@@ -397,7 +534,6 @@ const NewAdvanceform = ({ context, onClose }: any) => {
           html: errors.map((e) => `• ${e}`).join("<br/>"),
           icon: "error",
         });
-
         return;
       }
 
@@ -422,50 +558,15 @@ const NewAdvanceform = ({ context, onClose }: any) => {
       });
 
       const PaymentId = await generatePaymentId();
-
       const flow = await buildApprovalFlow();
+      const payload = buildItemPayload(
+        PaymentId,
+        flow,
+        "Pending for Approval",
+        "Submitted",
+      );
 
-      const currentApproverId = flow.length > 0 ? flow[0].Id : null;
-
-      const history = [
-        {
-          CurrentApprover: employee.EmployeeName,
-          ActionTaken: "Submitted",
-          Comment: remarks || "Request submitted",
-          Date: new Date().toISOString(),
-        },
-      ];
-
-      const selectedVendor = vendors.find((v) => v.Id === selectedVendorId);
-
-      await sp.web.lists.getByTitle("Installation").items.add({
-        Title: PaymentId,
-        PaymentId: PaymentId,
-        EmployeeCode: employee.EmployeeCode || "",
-        EmployeeName: employee.EmployeeName || "",
-        Division: employee.Division || "",
-        Location: employee.Location || "",
-        Email: employee.EmployeeEmail || "",
-        ReportingManager: employee.ReportingManager?.Title || "",
-        HOD: employee.HOD?.Title || "",
-        ContactNo: employee.ContactNo || "",
-        EmployeeStatus: employee.EmployeeStatus || "",
-        VendorCode: selectedVendor?.VendorCode || "",
-        VendorName: selectedVendor?.VendorName || "",
-        PONumber: poNumber || "",
-        POdate: poDate ? new Date(poDate) : null,
-        POPaymentTerms: poTerms || "",
-        POAmount: poAmount || "",
-        TotalPaymentofProject: advanceAmount || "0",
-        GSTAdjustmentifAny: gstAdjustment || "0",
-        OtherAdjustmentifany: otherAdjustment || "0",
-        TotalamounttobeCapitalized: paidAmount || "0",
-        Status: "Pending for Approval",
-        ApprovalMatrix: JSON.stringify(flow),
-        CurrentApproverId: currentApproverId,
-        WorkFlowHistory: JSON.stringify(history),
-      });
-
+      await sp.web.lists.getByTitle("Installation").items.add(payload);
       await uploadAttachments(PaymentId);
 
       await Swal.fire({
@@ -478,7 +579,6 @@ const NewAdvanceform = ({ context, onClose }: any) => {
       onClose();
     } catch (error: any) {
       console.error(error);
-
       await Swal.fire({
         title: "Submission Failed",
         text: error?.message || "Something went wrong",
@@ -510,53 +610,15 @@ const NewAdvanceform = ({ context, onClose }: any) => {
       });
 
       const PaymentId = await generatePaymentId();
-
       const flow = await buildApprovalFlow();
+      const payload = buildItemPayload(
+        PaymentId,
+        flow,
+        "Save as Draft",
+        "Saved as draft",
+      );
 
-      const currentApproverId = flow.length > 0 ? flow[0].Id : null;
-
-      const history = [
-        {
-          CurrentApprover: employee.EmployeeName,
-          ActionTaken: "Saved as draft",
-          Comment: "Saved as draft",
-          Date: new Date().toISOString(),
-        },
-      ];
-
-      await sp.web.lists.getByTitle("Installation").items.add({
-        Title: PaymentId,
-        PaymentId: PaymentId,
-
-        EmployeeCode: employee.EmployeeCode || "",
-        EmployeeName: employee.EmployeeName || "",
-        Division: employee.Division || "",
-        Location: employee.Location || "",
-        Email: employee.EmployeeEmail || "",
-
-        ReportingManager: employee.ReportingManager?.Title || "",
-        HOD: employee.HOD?.Title || "",
-        ContactNo: employee.ContactNo || "",
-        EmployeeStatus: employee.EmployeeStatus || "",
-
-        VendorCode: selectedVendorCode,
-        VendorName: selectedVendorName || "",
-
-        PONumber: poNumber || "",
-        POdate: poDate ? new Date(poDate) : null,
-        POPaymentTerms: poTerms || "",
-        POAmount: poAmount || "",
-
-        TotalPaymentofProject: advanceAmount || "0",
-        GSTAdjustmentifAny: gstAdjustment || "0",
-        OtherAdjustmentifany: otherAdjustment || "0",
-        TotalamounttobeCapitalized: paidAmount || "0",
-
-        Status: "Save as Draft",
-        ApprovalMatrix: JSON.stringify(flow),
-        CurrentApproverId: currentApproverId,
-        WorkFlowHistory: JSON.stringify(history),
-      });
+      await sp.web.lists.getByTitle("Installation").items.add(payload);
 
       if (attachments.length > 0) {
         await uploadAttachments(PaymentId);
@@ -572,7 +634,6 @@ const NewAdvanceform = ({ context, onClose }: any) => {
       onClose();
     } catch (error: any) {
       console.error(error);
-
       await Swal.fire({
         title: "Draft Save Failed",
         text: error?.message || "Something went wrong",
@@ -706,9 +767,10 @@ const NewAdvanceform = ({ context, onClose }: any) => {
               </div>
 
               <div className="heading1" style={{ marginTop: "10px" }}>
-                <label>Vendor & PO Details</label>
+                <label>Vendor &amp; PO Details</label>
               </div>
               <div className="main-formcontainer">
+                {/* Row 1: Vendor Code, Vendor Name, PO Number */}
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">Vendor Code</label>
@@ -720,9 +782,6 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                         setSelectedVendorId(id);
                         setSelectedVendorCode(vendor?.VendorCode || "");
                         setSelectedVendorName(vendor?.VendorName || "");
-                        if (id) {
-                          void getPreviousAdvances(id);
-                        }
                       }}
                       className="formtext-control"
                     >
@@ -739,6 +798,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                     <input
                       value={selectedVendorName}
                       className="form-control readonly"
+                      readOnly
                     />
                   </div>
                   <div className="col-md-4">
@@ -747,10 +807,11 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                       value={poNumber}
                       className="formtext-control"
                       onChange={(e) => {
+                        const val = e.target.value;
                         const selectedPO = poList.find(
-                          (item) => item.PONumber === e.target.value,
+                          (item) => item.PONumber === val,
                         );
-                        setPoNumber(e.target.value);
+                        setPoNumber(val);
                         if (selectedPO) {
                           setPoDate(
                             selectedPO.PODate
@@ -759,9 +820,15 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                                   .split("T")[0]
                               : "",
                           );
-                          setPoTerms(selectedPO.POAdvanceTerms || "");
-                          setPoAmount(selectedPO.POAmtGST || "");
+                          setPoTerms(selectedPO.POPaymentTerms || "");
+                          setPoAmount(selectedPO.POAmount || "");
+                        } else {
+                          setPoDate("");
+                          setPoTerms("");
+                          setPoAmount("");
                         }
+                        void getPastMRNDetails(val);
+                        void getAdvanceHistory(val);
                       }}
                     >
                       <option value="">Select PO Number</option>
@@ -773,6 +840,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                     </select>
                   </div>
                 </div>
+
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">PO Date</label>
@@ -780,64 +848,189 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                       type="date"
                       value={poDate}
                       className="form-control readonly"
+                      readOnly
                     />
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO Payment Terms</label>
-                    <input value={poTerms} className="form-control readonly" />
+                    <input
+                      value={poTerms}
+                      className="form-control readonly"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO Amount (GST)</label>
-                    <input value={poAmount} className="form-control readonly" />
+                    <input
+                      value={poAmount}
+                      className="form-control readonly"
+                      readOnly
+                    />
                   </div>
                 </div>
+
+                {/* Row 3: MRN Amount Basic, PO Amount Basic, PO Amount GST */}
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label className="font">
-                      Total Payment for the Project
+                    <label className="font">MRN Amount Basic</label>
+                    <input
+                      value={mrnAmountBasic}
+                      className="form-control"
+                      placeholder="0.00"
+                      onChange={(e) =>
+                        handleNumberChange(e.target.value, setMrnAmountBasic)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">PO Amount Basic</label>
+                    <input
+                      value={poAmountBasic}
+                      className="form-control"
+                      placeholder="0.00"
+                      onChange={(e) =>
+                        handleNumberChange(e.target.value, setPoAmountBasic)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">PO Amount GST</label>
+                    <input
+                      value={poAmountGST}
+                      className="form-control"
+                      placeholder="0.00"
+                      onChange={(e) =>
+                        handleNumberChange(e.target.value, setPoAmountGST)
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Row 4: PO Amount Other, PO Amount Total */}
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label className="font">PO Amount Other</label>
+                    <input
+                      value={poAmountOther}
+                      className="form-control"
+                      placeholder="0.00"
+                      onChange={(e) =>
+                        handleNumberChange(e.target.value, setPoAmountOther)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font" style={{ color: "#000000" }}>
+                      PO Amount Total (Basic + GST + Other)
+                    </label>
+                    <input
+                      value={poAmountTotal}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                {/* Row 5: Total Amount to be Capitalized + GST tickbox */}
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label className="font" style={{ color: "#000000" }}>
+                      Total Amount to be Capitalized
                     </label>
                     <input
                       value={advanceAmount}
                       className="form-control"
+                      placeholder="0.00"
                       onChange={(e) =>
                         handleNumberChange(e.target.value, setAdvanceAmount)
                       }
                     />
                   </div>
-                  {/* <div className="col-md-4">
-                    <label className="font">Gst Adjustment(Any)</label>
-                    <input
-                      value={gstAdjustment}
-                      className="form-control"
-                      onChange={(e) =>
-                        handleNumberChange(e.target.value, setGstAdjustment)
-                      }
-                    />
+                  <div
+                    className="col-md-4"
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-end",
+                      paddingBottom: "4px",
+                    }}
+                  >
+                    <div className="gst-capitalized-row">
+                      <input
+                        type="checkbox"
+                        id="gstCapitalized"
+                        checked={gstToBeCapitalized}
+                        onChange={(e) =>
+                          setGstToBeCapitalized(e.target.checked)
+                        }
+                        className="gst-checkbox"
+                      />
+                      <label
+                        htmlFor="gstCapitalized"
+                        className="gst-checkbox-label font"
+                      >
+                        Whether GST to be Capitalized
+                      </label>
+                      <span
+                        className="info-icon"
+                        onMouseEnter={() => setShowGstTooltip(true)}
+                        onMouseLeave={() => setShowGstTooltip(false)}
+                      >
+                        &#9432;
+                        {showGstTooltip && (
+                          <span className="info-tooltip">
+                            Info not added yet!
+                          </span>
+                        )}
+                      </span>
+                    </div>
                   </div>
-                  <div className="col-md-4">
-                    <label className="font">Other Adjustment</label>
-                    <input
-                      value={otherAdjustment}
-                      className="form-control"
-                      onChange={(e) =>
-                        handleNumberChange(e.target.value, setOtherAdjustment)
-                      }
-                    />
-                  </div> */}
                 </div>
+
+                {/* Asset Codes — multiple entry, no empty save */}
                 <div className="row mb-20">
-                  <div className="col-md-4">
-                    <label className="font" style={{ color: "red" }}>
-                      Total Project Amount to be Capitalized
+                  <div className="col-md-12">
+                    <label className="font">
+                      Asset Code(s){" "}
+                      <span style={{ color: "red" }}>*</span>
                     </label>
-                    <input
-                      value={paidAmount}
-                      className="form-control readonly"
-                    />
+                    <div className="asset-codes-container">
+                      {assetCodes.map((code, index) => (
+                        <div key={index} className="asset-code-row">
+                          <input
+                            value={code}
+                            className={`form-control asset-code-input${code.trim() === "" ? " input-error" : ""}`}
+                            placeholder={`Asset Code ${index + 1}`}
+                            onChange={(e) =>
+                              handleAssetCodeChange(index, e.target.value)
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="asset-code-remove-btn"
+                            onClick={() => removeAssetCode(index)}
+                            disabled={assetCodes.length === 1}
+                            title="Remove"
+                          >
+                            &times;
+                          </button>
+                          {index === assetCodes.length - 1 && (
+                            <button
+                              type="button"
+                              className="asset-code-add-btn"
+                              onClick={addAssetCode}
+                              title="Add another asset code"
+                            >
+                              + Add
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* Past MRN Details — original columns kept, data from CapexPayment */}
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Past MRN Details</label>
               </div>
@@ -867,46 +1060,42 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                               </td>
                             </tr>
                           ) : (
-                            previousAdvances.map((item: any, index: number) => {
-                              const pending = Math.max(
-                                0,
-                                Number(item.RequestAdvanceAmount || 0) -
-                                  Number(item.PaidAmount || 0),
-                              );
-                              return (
-                                <tr key={index}>
-                                  <td className="px-4 py-2">{item.PONumber}</td>
-                                  <td className="px-4 py-2">
-                                    {item.RequestAdvanceAmount}
-                                  </td>
-                                  <td className="px-4 py-2">
-                                    {item.Created
-                                      ? new Date(
-                                          item.Created,
-                                        ).toLocaleDateString()
-                                      : ""}
-                                  </td>
-                                  <td className="px-4 py-2">
-                                    {item.VoucherDate
-                                      ? new Date(
-                                          item.VoucherDate,
-                                        ).toLocaleDateString()
-                                      : ""}
-                                  </td>
-                                  <td className="px-4 py-2">
-                                    {item.VoucherNumber}
-                                  </td>
-                                  <td className="px-4 py-2">
-                                    {item.PaidAmount}
-                                  </td>
-                                  <td className="px-4 py-2">{pending}</td>
-                                  <td className="px-4 py-2">
-                                    {item.PaidAmount}
-                                  </td>
-                                  <td className="px-4 py-2">{pending}</td>
-                                </tr>
-                              );
-                            })
+                            previousAdvances.map((item: any, index: number) => (
+                              <tr key={index}>
+                                {/* PO Number — CapexPayment: PONumber */}
+                                <td className="px-4 py-2">{item.PONumber}</td>
+                                {/* PO Date — CapexPayment: PODate */}
+                                <td className="px-4 py-2">
+                                  {item.PODate
+                                    ? new Date(item.PODate).toLocaleDateString()
+                                    : ""}
+                                </td>
+                                {/* PO Amount — CapexPayment: POAmount */}
+                                <td className="px-4 py-2">{item.POAmount}</td>
+                                {/* MRN No — CapexPayment: MRNNumber */}
+                                <td className="px-4 py-2">{item.MRNNumber}</td>
+                                {/* MRN Date — CapexPayment: MRNDtae */}
+                                <td className="px-4 py-2">
+                                  {item.MRNDtae
+                                    ? new Date(
+                                        item.MRNDtae,
+                                      ).toLocaleDateString()
+                                    : ""}
+                                </td>
+                                {/* MRN Amount — CapexPayment: MRNAmountwithGST */}
+                                <td className="px-4 py-2">
+                                  {item.MRNAmountwithGST}
+                                </td>
+                                {/* Advance Adjustment — not in list, show empty */}
+                                <td className="px-4 py-2"></td>
+                                {/* Paid Amount — CapexPayment: RequestedAmountforPayment */}
+                                <td className="px-4 py-2">
+                                  {item.RequestedAmountforPayment}
+                                </td>
+                                {/* Remarks — not in list, show empty */}
+                                <td className="px-4 py-2"></td>
+                              </tr>
+                            ))
                           )}
                         </tbody>
                       </table>
@@ -915,6 +1104,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                 </div>
               </div>
 
+              {/* Advance History — original columns kept, data from CapexAdvance */}
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Advance History(to be PO Specific)</label>
               </div>
@@ -935,14 +1125,14 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                           </tr>
                         </thead>
                         <tbody>
-                          {previousAdvances.length === 0 ? (
+                          {advanceHistory.length === 0 ? (
                             <tr>
                               <td colSpan={7} style={{ textAlign: "center" }}>
                                 No Data
                               </td>
                             </tr>
                           ) : (
-                            previousAdvances.map((item: any, index: number) => {
+                            advanceHistory.map((item: any, index: number) => {
                               const pending = Math.max(
                                 0,
                                 Number(item.RequestAdvanceAmount || 0) -
@@ -950,10 +1140,13 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                               );
                               return (
                                 <tr key={index}>
+                                  {/* PO Number — CapexAdvance: PONumber */}
                                   <td className="px-4 py-2">{item.PONumber}</td>
+                                  {/* Previous Advance — CapexAdvance: RequestAdvanceAmount */}
                                   <td className="px-4 py-2">
                                     {item.RequestAdvanceAmount}
                                   </td>
+                                  {/* Amount Requested Date — CapexAdvance: Created */}
                                   <td className="px-4 py-2">
                                     {item.Created
                                       ? new Date(
@@ -961,6 +1154,7 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                                         ).toLocaleDateString()
                                       : ""}
                                   </td>
+                                  {/* Amount Paid Date — CapexAdvance: VoucherDate */}
                                   <td className="px-4 py-2">
                                     {item.VoucherDate
                                       ? new Date(
@@ -968,12 +1162,13 @@ const NewAdvanceform = ({ context, onClose }: any) => {
                                         ).toLocaleDateString()
                                       : ""}
                                   </td>
-                                  <td className="px-4 py-2">
-                                    {item.VoucherNumber}
-                                  </td>
+                                  {/* MRN No — not in CapexAdvance, show empty */}
+                                  <td className="px-4 py-2"></td>
+                                  {/* Settled Amount — CapexAdvance: PaidAmount */}
                                   <td className="px-4 py-2">
                                     {item.PaidAmount}
                                   </td>
+                                  {/* Pending Advance — computed */}
                                   <td className="px-4 py-2">{pending}</td>
                                 </tr>
                               );
