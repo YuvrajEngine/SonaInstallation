@@ -42,14 +42,13 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     try {
       const items = await sp.web.lists
         .getByTitle("Installation")
-        .items
-        .filter(`Email eq '${filterEmail}'`)
+        .items.filter(`Email eq '${filterEmail}'`)
         .select(
           "ID",
           "Title",
           "Created",
           "EmployeeName",
-          "Email",       
+          "Email",
           "VendorName",
           "VendorCode",
           "PONumber",
@@ -69,7 +68,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
           ? new Date(item.Created).toLocaleDateString("en-GB")
           : "",
         EmployeeName: item.EmployeeName || "",
-        Email: item.Email || "",  
+        Email: item.Email || "",
         VendorName: item.VendorName || "",
         VendorCode: item.VendorCode || "",
         PONumber: item.PONumber || "",
@@ -118,7 +117,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     }
   };
 
-  // ✅ UPDATED: filter uses email for ownership check (more reliable than name)
   const filteredData = data.filter((item) => {
     const isOwner =
       item.Email?.toLowerCase() === currentUserEmail?.toLowerCase();
@@ -134,7 +132,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
     } else if (activeMenu === "Reject") {
       menuFilter = item.status?.toLowerCase() === "reject";
     } else if (activeMenu === "My Request") {
-      menuFilter = true;
+      const status = item.status?.toLowerCase();
+      menuFilter = status !== "paid" && status !== "reject";
     }
 
     return (
