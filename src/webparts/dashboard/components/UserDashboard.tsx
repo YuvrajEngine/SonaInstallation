@@ -154,7 +154,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
       try {
         const user = await sp.web.currentUser();
         setCurrentUserName(user.Title);
-        // ✅ Store email and pass it to getCapexData
         setCurrentUserEmail(user.Email);
         await getCapexData(user.Email);
       } catch (error) {
@@ -356,7 +355,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
                               cursor: "pointer",
                             }}
                           >
-                            {/* View Icon */}
                             <span
                               onClick={() => handleViewClick(item)}
                               style={{ cursor: "pointer" }}
@@ -364,7 +362,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ context }) => {
                               <img src={View} width={15} alt="View" />
                             </span>
 
-                            {/* Edit Icon — only for Draft or Send Back */}
                             {(item.status?.toLowerCase() === "save as draft" ||
                               item.status?.toLowerCase() === "send back") && (
                               <span
