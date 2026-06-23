@@ -62,23 +62,17 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
   const [poBasicAmount, setPoBasicAmount] = useState("");
   const [poGSTAmount, setPoGSTAmount] = useState("");
   const [poOtherAmount, setPoOtherAmount] = useState("");
-
+  const [workflowHistory, setWorkflowHistory] = useState<any[]>([]);
   const [mrnBasicAmount, setMrnBasicAmount] = useState("");
   const [mrnGSTAmount, setMrnGSTAmount] = useState("");
   const [mrnOtherAmount, setMrnOtherAmount] = useState("");
-
   const [advanceAmount, setAdvanceAmount] = useState("");
-
   const [gstToBeCapitalized, setGstToBeCapitalized] = useState(false);
   const [showGstTooltip, setShowGstTooltip] = useState(false);
-
   const [assetCodes, setAssetCodes] = useState<string[]>([""]);
-
   const [remarks, setRemarks] = useState("");
-
   const [approverDetails, setApproverDetails] = useState<any[]>([]);
   const [approvers, setApprovers] = useState<number[]>([]);
-
   const [previousAdvances, setPreviousAdvances] = useState<any[]>([]);
   const [advanceHistory, setAdvanceHistory] = useState<any[]>([]);
 
@@ -585,6 +579,21 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
       });
     }
   };
+
+  useEffect(() => {
+    if (!formData) return;
+
+    try {
+      const history =
+        typeof formData.WorkFlowHistory === "string"
+          ? JSON.parse(formData.WorkFlowHistory)
+          : formData.WorkFlowHistory || [];
+
+      setWorkflowHistory(history);
+    } catch {
+      setWorkflowHistory([]);
+    }
+  }, [formData]);
 
   useEffect(() => {
     if (!formData || vendors.length === 0) return;
@@ -1183,6 +1192,47 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="heading1" style={{ marginTop: "10px" }}>
+                <label>Workflow History</label>
+              </div>
+
+              <div className="main-formcontainer">
+                <div className="row mb-20">
+                  <div className="col-md-12">
+                    {workflowHistory.length === 0 ? (
+                      <p>No history available</p>
+                    ) : (
+                      <div className="workflow-history">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Action By</th>
+                              <th>Action Taken</th>
+                              <th>Date</th>
+                              <th>Comment</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {workflowHistory.map((h: any, index: number) => (
+                              <tr key={index}>
+                                <td>{h.CurrentApprover}</td>
+                                <td>{h.ActionTaken}</td>
+                                <td>
+                                  {h.Date
+                                    ? new Date(h.Date).toLocaleString()
+                                    : ""}
+                                </td>
+                                <td>{h.Comment}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
