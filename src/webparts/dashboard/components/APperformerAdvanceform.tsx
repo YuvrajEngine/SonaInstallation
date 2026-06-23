@@ -34,6 +34,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
   const sp = spfi().using(SPFx(context));
   const [attachments, setAttachments] = useState<any[]>([]);
   const [previousAdvances, setPreviousAdvances] = useState<any[]>([]);
+  const [advanceHistory, setAdvanceHistory] = useState<any[]>([]);
   const [itemData, setItemData] = useState<any>(null);
   const [approverRemarks, setApproverRemarks] = useState("");
   const [voucherDate, setVoucherDate] = useState("");
@@ -46,6 +47,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
   const [approvalMatrix, setApprovalMatrix] = useState<any[]>([]);
   const [workflowHistory, setWorkflowHistory] = useState<any[]>([]);
   const [selectedVendorCode, setSelectedVendorCode] = useState("");
+  const [totalCapitalized, setTotalCapitalized] = useState<string>("0");
 
   const peoplePickerContext: IPeoplePickerContext = {
     absoluteUrl: context.pageContext.web.absoluteUrl,
@@ -53,10 +55,20 @@ const APperformerAdvanceform: React.FC<IProps> = ({
     spHttpClient: context.spHttpClient,
   };
 
-  const totalCapitalizedAmount =
-    Number(itemData?.TotalPaymentofProject || 0) +
-    Number(gstAdjustment || 0) +
-    Number(otherAdjustment || 0);
+  const poAmountBasic = itemData?.POAmountBasic != null ? String(itemData.POAmountBasic) : "0";
+  const poAmountGST = itemData?.POAmountGST != null ? String(itemData.POAmountGST) : "0";
+  const poAmountOther = itemData?.POAmountOther != null ? String(itemData.POAmountOther) : "0";
+  const mrnAmountBasic = itemData?.MRNAmountBasic != null ? String(itemData.MRNAmountBasic) : "0";
+  const mrnAmountGST = itemData?.MRNAmountGST != null ? String(itemData.MRNAmountGST) : "0";
+  const mrnAmountOther = itemData?.MRNAmountOther != null ? String(itemData.MRNAmountOther) : "0";
+
+  const poAmountTotal = (
+    Number(poAmountBasic) + Number(poAmountGST) + Number(poAmountOther)
+  ).toFixed(2);
+
+  const mrnAmountTotal = (
+    Number(mrnAmountBasic) + Number(mrnAmountGST) + Number(mrnAmountOther)
+  ).toFixed(2);
 
   const norm = (s: string) => (s || "").toLowerCase().trim();
 
@@ -132,9 +144,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
       if (!paymentId) return;
       const safePaymentId = paymentId.replace(/\//g, "_");
       const folderPath = `InstallationCommision/${safePaymentId}`;
-      console.log("Folder Path:", folderPath);
       const files = await sp.web.getFolderByServerRelativePath(folderPath).files();
-      console.log("Files:", files);
       setAttachments(files || []);
     } catch (error) {
       console.log("Attachment fetch error:", error);
@@ -142,29 +152,40 @@ const APperformerAdvanceform: React.FC<IProps> = ({
     }
   };
 
-  const getPreviousAdvances = async (vendorId: number) => {
+  const getPastMRNDetails = async (selectedPONumber: string) => {
+    if (!selectedPONumber) { setPreviousAdvances([]); return; }
     try {
-      const vendor = vendors.find((v) => v.Id === vendorId);
-      if (!vendor) return;
-      const data = await sp.web.lists
-        .getByTitle("Installation")
+      const result = await sp.web.lists
+        .getByTitle("CapexPayment")
         .items.select(
-          "PONumber",
-          "TotalPaymentofProject",
-          "Created",
-          "VoucherDate",
-          "PaidAmount",
-          "Status",
-          "VendorCode",
-          "VoucherNumber"
+          "PONumber", "PODate", "POAmount", "MRNNumber", "MRNDtae",
+          "MRNAmountwithGST", "RequestedAmountforPayment",
+          "VoucherDate", "VoucherNumber", "Status"
         )
-        .filter(`Status eq 'Paid' and VendorCode eq '${vendor.VendorCode}'`)
+        .filter(`PONumber eq '${selectedPONumber}' and Status eq 'Paid'`)
         .orderBy("Created", false)();
-      console.log("DATA:", data);
-      setPreviousAdvances(data);
+      setPreviousAdvances(result);
     } catch (error) {
-      console.error("Error fetching previous advances:", error);
+      console.error("Error fetching Past MRN Details:", error);
       setPreviousAdvances([]);
+    }
+  };
+
+  const getAdvanceHistory = async (selectedPONumber: string) => {
+    if (!selectedPONumber) { setAdvanceHistory([]); return; }
+    try {
+      const result = await sp.web.lists
+        .getByTitle("CapexAdvance")
+        .items.select(
+          "PONumber", "RequestAdvanceAmount", "Created",
+          "VoucherDate", "PaidAmount", "VouchingNumber", "Status"
+        )
+        .filter(`PONumber eq '${selectedPONumber}'`)
+        .orderBy("Created", false)();
+      setAdvanceHistory(result);
+    } catch (error) {
+      console.error("Error fetching Advance History:", error);
+      setAdvanceHistory([]);
     }
   };
 
@@ -185,22 +206,23 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         .getByTitle("Installation")
         .items.getById(itemId)();
 
-      console.log("CurrentApproverId from SP:", item.CurrentApproverId);
-      console.log("ApprovalMatrix from SP:", item.ApprovalMatrix);
-      console.log("Status from SP:", item.Status);
-      console.log("PaymentId from SP:", item.PaymentId);
-
       setItemData(item);
       setApproverRemarks("");
+      setGstAdjustment(Number(item.GSTAdjustmentifAny || 0));
+      setOtherAdjustment(Number(item.OtherAdjustmentifany || 0));
+      setTotalCapitalized(item.TotalamounttobeCapitalized || "0");
 
       const matchedVendor = vendors.find((v) => v.VendorCode === item.VendorCode);
       setSelectedVendorId(matchedVendor?.Id || null);
       setSelectedVendorName(item.VendorName || "");
-      setGstAdjustment(Number(item.GSTAdjustmentifAny || 0));
-      setOtherAdjustment(Number(item.OtherAdjustmentifany || 0));
 
       if (item.PaymentId) {
         await getAttachments(item.PaymentId);
+      }
+
+      if (item.PONumber) {
+        await getPastMRNDetails(item.PONumber);
+        await getAdvanceHistory(item.PONumber);
       }
 
       if (item.ApprovalMatrix) {
@@ -210,7 +232,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
               ? JSON.parse(item.ApprovalMatrix)
               : item.ApprovalMatrix;
           const matrix = Array.isArray(parsed) ? parsed : [];
-          console.log("Parsed ApprovalMatrix:", matrix);
           setApprovalMatrix(matrix);
         } catch (e) {
           console.error("ApprovalMatrix parse error", e);
@@ -227,7 +248,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
               ? JSON.parse(item.WorkFlowHistory)
               : item.WorkFlowHistory;
           const history = Array.isArray(parsed) ? parsed : [];
-          console.log("Parsed WorkFlowHistory:", history);
           setWorkflowHistory(history);
         } catch (e) {
           console.error("WorkFlowHistory parse error", e);
@@ -252,7 +272,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
 
   useEffect(() => {
     if (!itemData || vendors.length === 0) return;
-    console.log("Saved VendorCode:", itemData.VendorCode);
     const vendor = vendors.find(
       (v) =>
         String(v.VendorCode || "").trim().toLowerCase() ===
@@ -262,7 +281,6 @@ const APperformerAdvanceform: React.FC<IProps> = ({
       setSelectedVendorId(vendor.Id);
       setSelectedVendorName(vendor.VendorName);
       setSelectedVendorCode(vendor.VendorCode);
-      void getPreviousAdvances(vendor.Id);
     } else {
       setSelectedVendorId(null);
       setSelectedVendorName(itemData.VendorName || "");
@@ -299,7 +317,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         VoucherNumber: voucherNumber,
         GSTAdjustmentifAny: gstAdjustment.toString(),
         OtherAdjustmentifany: otherAdjustment.toString(),
-        TotalamounttobeCapitalized: totalCapitalizedAmount.toString(),
+        TotalamounttobeCapitalized: totalCapitalized,
         Status: "Pending for UTR Update",
         ApprovalMatrix: JSON.stringify(flow),
         WorkFlowHistory: JSON.stringify(history),
@@ -345,7 +363,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         VoucherNumber: voucherNumber,
         GSTAdjustmentifAny: gstAdjustment.toString(),
         OtherAdjustmentifany: otherAdjustment.toString(),
-        TotalamounttobeCapitalized: totalCapitalizedAmount.toString(),
+        TotalamounttobeCapitalized: totalCapitalized,
         Status: "Send Back",
         ApprovalMatrix: JSON.stringify(flow),
         WorkFlowHistory: JSON.stringify(history),
@@ -387,7 +405,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
         VoucherNumber: voucherNumber,
         GSTAdjustmentifAny: gstAdjustment.toString(),
         OtherAdjustmentifany: otherAdjustment.toString(),
-        TotalamounttobeCapitalized: totalCapitalizedAmount.toString(),
+        TotalamounttobeCapitalized: totalCapitalized,
         Status: "Reject",
         ApprovalMatrix: JSON.stringify(flow),
         WorkFlowHistory: JSON.stringify(history),
@@ -480,8 +498,9 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                   </div>
                 </div>
               </div>
+
               <div className="heading1" style={{ marginTop: "10px" }}>
-                <label>Vendor & PO Details</label>
+                <label>Vendor &amp; PO Details</label>
               </div>
               <div className="main-formcontainer">
                 <div className="row mb-20">
@@ -491,11 +510,11 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                   </div>
                   <div className="col-md-4">
                     <label className="font">Vendor Name</label>
-                    <input value={itemData.VendorName || ""} className="form-control readonly" />
+                    <input value={itemData.VendorName || ""} className="form-control readonly" readOnly />
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO Number</label>
-                    <input value={itemData.PONumber || ""} className="form-control readonly" />
+                    <input value={itemData.PONumber || ""} className="form-control readonly" readOnly />
                   </div>
                 </div>
                 <div className="row mb-20">
@@ -505,34 +524,72 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO Payment Terms</label>
-                    <input value={itemData.POPaymentTerms || ""} className="form-control readonly" />
+                    <input value={itemData.POPaymentTerms || ""} className="form-control readonly" readOnly />
                   </div>
                   <div className="col-md-4">
-                    <label className="font">PO Amount</label>
-                    <input value={itemData.POAmount || ""} className="form-control readonly" />
-                  </div>
-                </div>
-                <div className="row mb-20">
-                  <div className="col-md-4">
-                    <label className="font">Total Payment for the Project</label>
-                    <input value={itemData.TotalPaymentofProject || ""} className="form-control readonly" />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="font">Gst Adjustment(Any)</label>
-                    <input type="number" className="form-control" value={gstAdjustment} onChange={(e) => setGstAdjustment(Number(e.target.value))} />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="font">Other Adjustment(Any)</label>
-                    <input type="number" className="form-control" value={otherAdjustment} onChange={(e) => setOtherAdjustment(Number(e.target.value))} />
+                    <label className="font">PO Amount (Incl. GST)</label>
+                    <input value={itemData.POAmount || ""} className="form-control readonly" readOnly />
                   </div>
                 </div>
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label className="font">Total Project Amount to be Capitalized</label>
-                    <input value={totalCapitalizedAmount.toFixed(2)} className="form-control readonly" />
+                    <label className="font">PO Basic Amount</label>
+                    <input value={poAmountBasic} className="form-control readonly computed-field" readOnly />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">PO GST Amount</label>
+                    <input value={poAmountGST} className="form-control readonly computed-field" readOnly />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">PO Other Amount</label>
+                    <input value={poAmountOther} className="form-control readonly computed-field" readOnly />
+                  </div>
+                </div>
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label className="font">MRN Basic Amount</label>
+                    <input value={mrnAmountBasic} className="form-control readonly computed-field" readOnly />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">MRN GST Amount</label>
+                    <input value={mrnAmountGST} className="form-control readonly computed-field" readOnly />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">MRN Other Amount</label>
+                    <input value={mrnAmountOther} className="form-control readonly computed-field" readOnly />
+                  </div>
+                </div>
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label className="font">PO Amount Total</label>
+                    <input value={poAmountTotal} className="form-control readonly computed-field" readOnly />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">MRN Amount Total</label>
+                    <input value={mrnAmountTotal} className="form-control readonly computed-field" readOnly />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">Total Amount to be Capitalized</label>
+                    <input
+                      type="number"
+                      value={totalCapitalized}
+                      onChange={(e) => setTotalCapitalized(e.target.value)}
+                      className="form-control"
+                    />
+                  </div>
+                </div>
+                <div className="row mb-20">
+                  <div className="col-md-4">
+                    <label className="font">Whether GST to be Capitalized</label>
+                    <input value={itemData.GSTToBeCapitalized || ""} className="form-control readonly" readOnly />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="font">Asset Code(s)</label>
+                    <input value={itemData.AssetCodes || ""} className="form-control readonly" readOnly />
                   </div>
                 </div>
               </div>
+
               <div className="heading1" style={{ marginTop: "10px" }}>
                 <label>Past MRN Details</label>
               </div>
@@ -545,7 +602,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                           <tr>
                             <th className="px-4 py-2">PO Number</th>
                             <th className="px-4 py-2">PO Date</th>
-                            <th className="px-4 py-2">Po Amount</th>
+                            <th className="px-4 py-2">PO Amount</th>
                             <th className="px-4 py-2">MRN No</th>
                             <th className="px-4 py-2">MRN Date</th>
                             <th className="px-4 py-2">MRN Amount</th>
@@ -558,22 +615,19 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                           {previousAdvances.length === 0 ? (
                             <tr><td colSpan={9} style={{ textAlign: "center" }}>No Data</td></tr>
                           ) : (
-                            previousAdvances.map((item: any, index: number) => {
-                              const pending = Math.max(0, Number(item.TotalPaymentofProject || 0) - Number(item.PaidAmount || 0));
-                              return (
-                                <tr key={index}>
-                                  <td className="px-4 py-2">{item.PONumber}</td>
-                                  <td className="px-4 py-2">{item.TotalPaymentofProject}</td>
-                                  <td className="px-4 py-2">{item.Created ? new Date(item.Created).toLocaleDateString() : ""}</td>
-                                  <td className="px-4 py-2">{item.VoucherDate ? new Date(item.VoucherDate).toLocaleDateString() : ""}</td>
-                                  <td className="px-4 py-2">{item.VoucherNumber}</td>
-                                  <td className="px-4 py-2">{item.PaidAmount}</td>
-                                  <td className="px-4 py-2">{pending}</td>
-                                  <td className="px-4 py-2">{item.PaidAmount}</td>
-                                  <td className="px-4 py-2">{pending}</td>
-                                </tr>
-                              );
-                            })
+                            previousAdvances.map((item: any, index: number) => (
+                              <tr key={index}>
+                                <td className="px-4 py-2">{item.PONumber}</td>
+                                <td className="px-4 py-2">{item.PODate ? new Date(item.PODate).toLocaleDateString() : ""}</td>
+                                <td className="px-4 py-2">{item.POAmount}</td>
+                                <td className="px-4 py-2">{item.MRNNumber}</td>
+                                <td className="px-4 py-2">{item.MRNDtae ? new Date(item.MRNDtae).toLocaleDateString() : ""}</td>
+                                <td className="px-4 py-2">{item.MRNAmountwithGST}</td>
+                                <td className="px-4 py-2"></td>
+                                <td className="px-4 py-2">{item.RequestedAmountforPayment}</td>
+                                <td className="px-4 py-2"></td>
+                              </tr>
+                            ))
                           )}
                         </tbody>
                       </table>
@@ -581,8 +635,9 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                   </div>
                 </div>
               </div>
+
               <div className="heading1" style={{ marginTop: "10px" }}>
-                <label>Advance History(to be PO Specific)</label>
+                <label>Advance History (to be PO Specific)</label>
               </div>
               <div className="main-formcontainer">
                 <div className="row mb-20">
@@ -601,18 +656,18 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                           </tr>
                         </thead>
                         <tbody>
-                          {previousAdvances.length === 0 ? (
+                          {advanceHistory.length === 0 ? (
                             <tr><td colSpan={7} style={{ textAlign: "center" }}>No Data</td></tr>
                           ) : (
-                            previousAdvances.map((item: any, index: number) => {
-                              const pending = Math.max(0, Number(item.TotalPaymentofProject || 0) - Number(item.PaidAmount || 0));
+                            advanceHistory.map((item: any, index: number) => {
+                              const pending = Math.max(0, Number(item.RequestAdvanceAmount || 0) - Number(item.PaidAmount || 0));
                               return (
                                 <tr key={index}>
                                   <td className="px-4 py-2">{item.PONumber}</td>
-                                  <td className="px-4 py-2">{item.TotalPaymentofProject}</td>
+                                  <td className="px-4 py-2">{item.RequestAdvanceAmount}</td>
                                   <td className="px-4 py-2">{item.Created ? new Date(item.Created).toLocaleDateString() : ""}</td>
                                   <td className="px-4 py-2">{item.VoucherDate ? new Date(item.VoucherDate).toLocaleDateString() : ""}</td>
-                                  <td className="px-4 py-2">{item.VoucherNumber}</td>
+                                  <td className="px-4 py-2"></td>
                                   <td className="px-4 py-2">{item.PaidAmount}</td>
                                   <td className="px-4 py-2">{pending}</td>
                                 </tr>
@@ -626,7 +681,10 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                 </div>
               </div>
 
-              <div className="main-formcontainer" style={{ marginTop: "10px" }}>
+              <div className="heading1" style={{ marginTop: "10px" }}>
+                <label>Vouching Details</label>
+              </div>              
+              <div className="main-formcontainer" style={{ marginTop: "0px" }}>
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">Voucher Date</label>
@@ -694,7 +752,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
                       </div>
                     )}
                   </div>
-                </div>   
+                </div>
               </div>
 
               <div className="heading1" style={{ marginTop: "10px" }}>
