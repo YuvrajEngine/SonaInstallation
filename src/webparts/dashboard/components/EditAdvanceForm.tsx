@@ -144,11 +144,24 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
       const result = await sp.web.lists
         .getByTitle("CapexPayment")
         .items.select(
-          "Id", "PONumber", "PODate", "POPaymentTerms", "POAmount",
-          "POBasicAmount", "POGSTAmount", "POOtherAmount",
-          "MRNBasicAmount", "MRNGSTAmount", "MRNOtherAmount",
-          "MRNNumber", "MRNDtae", "MRNAmountwithGST",
-          "RequestedAmountforPayment", "VoucherDate", "VoucherNumber", "Status",
+          "Id",
+          "PONumber",
+          "PODate",
+          "POPaymentTerms",
+          "POAmount",
+          "POBasicAmount",
+          "POGSTAmount",
+          "POOtherAmount",
+          "MRNBasicAmount",
+          "MRNGSTAmount",
+          "MRNOtherAmount",
+          "MRNNumber",
+          "MRNDtae",
+          "MRNAmountwithGST",
+          "RequestedAmountforPayment",
+          "VoucherDate",
+          "VoucherNumber",
+          "Status",
         )
         .filter(`Status eq 'Paid'`)
         .orderBy("Created", false)
@@ -166,12 +179,18 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
           PODate: item.PODate || "",
           POPaymentTerms: item.POPaymentTerms || "",
           POAmount: item.POAmount || "",
-          POBasicAmount: item.POBasicAmount != null ? String(item.POBasicAmount) : "0",
-          POGSTAmount: item.POGSTAmount != null ? String(item.POGSTAmount) : "0",
-          POOtherAmount: item.POOtherAmount != null ? String(item.POOtherAmount) : "0",
-          MRNBasicAmount: item.MRNBasicAmount != null ? String(item.MRNBasicAmount) : "0",
-          MRNGSTAmount: item.MRNGSTAmount != null ? String(item.MRNGSTAmount) : "0",
-          MRNOtherAmount: item.MRNOtherAmount != null ? String(item.MRNOtherAmount) : "0",
+          POBasicAmount:
+            item.POBasicAmount != null ? String(item.POBasicAmount) : "0",
+          POGSTAmount:
+            item.POGSTAmount != null ? String(item.POGSTAmount) : "0",
+          POOtherAmount:
+            item.POOtherAmount != null ? String(item.POOtherAmount) : "0",
+          MRNBasicAmount:
+            item.MRNBasicAmount != null ? String(item.MRNBasicAmount) : "0",
+          MRNGSTAmount:
+            item.MRNGSTAmount != null ? String(item.MRNGSTAmount) : "0",
+          MRNOtherAmount:
+            item.MRNOtherAmount != null ? String(item.MRNOtherAmount) : "0",
           MRNNumber: item.MRNNumber || "",
           MRNDtae: item.MRNDtae || "",
           MRNAmountwithGST: item.MRNAmountwithGST || "",
@@ -191,14 +210,24 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
   };
 
   const getPastMRNDetails = async (selectedPONumber: string) => {
-    if (!selectedPONumber) { setPreviousAdvances([]); return; }
+    if (!selectedPONumber) {
+      setPreviousAdvances([]);
+      return;
+    }
     try {
       const result = await sp.web.lists
         .getByTitle("CapexPayment")
         .items.select(
-          "PONumber", "PODate", "POAmount", "MRNNumber", "MRNDtae",
-          "MRNAmountwithGST", "RequestedAmountforPayment",
-          "VoucherDate", "VoucherNumber", "Status",
+          "PONumber",
+          "PODate",
+          "POAmount",
+          "MRNNumber",
+          "MRNDtae",
+          "MRNAmountwithGST",
+          "RequestedAmountforPayment",
+          "VoucherDate",
+          "VoucherNumber",
+          "Status",
         )
         .filter(`PONumber eq '${selectedPONumber}' and Status eq 'Paid'`)
         .orderBy("Created", false)();
@@ -210,13 +239,21 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
   };
 
   const getAdvanceHistory = async (selectedPONumber: string) => {
-    if (!selectedPONumber) { setAdvanceHistory([]); return; }
+    if (!selectedPONumber) {
+      setAdvanceHistory([]);
+      return;
+    }
     try {
       const result = await sp.web.lists
         .getByTitle("CapexAdvance")
         .items.select(
-          "PONumber", "RequestAdvanceAmount", "Created",
-          "VoucherDate", "PaidAmount", "VouchingNumber", "Status",
+          "PONumber",
+          "RequestAdvanceAmount",
+          "Created",
+          "VoucherDate",
+          "PaidAmount",
+          "VouchingNumber",
+          "Status",
         )
         .filter(`PONumber eq '${selectedPONumber}'`)
         .orderBy("Created", false)();
@@ -246,9 +283,18 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
       const user = await sp.web.lists
         .getByTitle("EmployeeMaster")
         .items.select(
-          "EmployeeCode", "EmployeeName", "Division", "Location",
-          "EmployeeEmail", "ReportingManager/Id", "ReportingManager/Title",
-          "HOD/Id", "HOD/Title", "ContactNo", "EmployeeStatus", "CostCenter",
+          "EmployeeCode",
+          "EmployeeName",
+          "Division",
+          "Location",
+          "EmployeeEmail",
+          "ReportingManager/Id",
+          "ReportingManager/Title",
+          "HOD/Id",
+          "HOD/Title",
+          "ContactNo",
+          "EmployeeStatus",
+          "CostCenter",
         )
         .expand("ReportingManager", "HOD")
         .filter(`EmployeeEmail eq '${email}'`)
@@ -288,7 +334,12 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
 
       const matrixData = await sp.web.lists
         .getByTitle("InstallationCommisionApprovalMatrix")
-        .items.select("Role/RoleName", "Approver/Id", "Approver/Title", "Level/Level")
+        .items.select(
+          "Role/RoleName",
+          "Approver/Id",
+          "Approver/Title",
+          "Level/Level",
+        )
         .expand("Role", "Approver", "Level")
         .filter("Status eq 'Active'")
         .orderBy("Level", true)();
@@ -419,7 +470,9 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
     }
   };
 
-  const handleSave = async (status: "Save as Draft" | "Pending for Approval") => {
+  const handleSave = async (
+    status: "Save as Draft" | "Pending for Approval",
+  ) => {
     try {
       if (status === "Pending for Approval") {
         const errors = validateForm();
@@ -457,10 +510,13 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
       const flow = await buildApprovalFlow();
 
       const currentApproverId =
-        status === "Pending for Approval" && flow.length > 0 ? flow[0].Id : null;
+        status === "Pending for Approval" && flow.length > 0
+          ? flow[0].Id
+          : null;
 
       const existingHistoryRaw = formData?.WorkFlowHistory || "[]";
       let existingHistory: any[] = [];
+
       try {
         existingHistory = JSON.parse(existingHistoryRaw);
         if (!Array.isArray(existingHistory)) existingHistory = [];
@@ -468,12 +524,14 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
         existingHistory = [];
       }
 
-      existingHistory.push({
-        CurrentApprover: employee.EmployeeName || "",
-        ActionTaken: status === "Save as Draft" ? "Saved as Draft" : "Submitted",
-        Comment: status === "Save as Draft" ? "Saved as draft" : "Request submitted",
-        Date: new Date().toISOString(),
-      });
+      if (status !== "Save as Draft") {
+        existingHistory.push({
+          CurrentApprover: employee.EmployeeName || "",
+          ActionTaken: "Submitted",
+          Comment: "Request submitted",
+          Date: new Date().toISOString(),
+        });
+      }
 
       const selectedVendor = vendors.find((v) => v.Id === selectedVendorId);
 
@@ -510,14 +568,21 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
 
       await Swal.fire({
         title: "Success",
-        text: status === "Save as Draft" ? "Draft Saved Successfully" : "Submitted Successfully",
+        text:
+          status === "Save as Draft"
+            ? "Draft Saved Successfully"
+            : "Submitted Successfully",
         icon: "success",
       });
 
       onClose();
     } catch (error) {
       console.error(error);
-      await Swal.fire({ title: "Error", text: "Something went wrong.", icon: "error" });
+      await Swal.fire({
+        title: "Error",
+        text: "Something went wrong.",
+        icon: "error",
+      });
     }
   };
 
@@ -529,12 +594,24 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
     setPoTerms(formData.POPaymentTerms || "");
     setPoAmount(formData.POAmount || "");
 
-    setPoBasicAmount(formData.POAmountBasic != null ? String(formData.POAmountBasic) : "0");
-    setPoGSTAmount(formData.POAmountGST != null ? String(formData.POAmountGST) : "0");
-    setPoOtherAmount(formData.POAmountOther != null ? String(formData.POAmountOther) : "0");
-    setMrnBasicAmount(formData.MRNAmountBasic != null ? String(formData.MRNAmountBasic) : "0");
-    setMrnGSTAmount(formData.MRNAmountGST != null ? String(formData.MRNAmountGST) : "0");
-    setMrnOtherAmount(formData.MRNAmountOther != null ? String(formData.MRNAmountOther) : "0");
+    setPoBasicAmount(
+      formData.POAmountBasic != null ? String(formData.POAmountBasic) : "0",
+    );
+    setPoGSTAmount(
+      formData.POAmountGST != null ? String(formData.POAmountGST) : "0",
+    );
+    setPoOtherAmount(
+      formData.POAmountOther != null ? String(formData.POAmountOther) : "0",
+    );
+    setMrnBasicAmount(
+      formData.MRNAmountBasic != null ? String(formData.MRNAmountBasic) : "0",
+    );
+    setMrnGSTAmount(
+      formData.MRNAmountGST != null ? String(formData.MRNAmountGST) : "0",
+    );
+    setMrnOtherAmount(
+      formData.MRNAmountOther != null ? String(formData.MRNAmountOther) : "0",
+    );
     setAdvanceAmount(formData.TotalamounttobeCapitalized || "");
     setGstToBeCapitalized(formData.GSTToBeCapitalized === "Yes");
 
@@ -599,7 +676,10 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                 {employee.EmployeeName || "Initiator"}
               </div>
               {approverDetails.map((approver, index) => (
-                <div key={index} className={`ribbon-step ${approver.status === "Pending" ? "pending" : "pending"}`}>
+                <div
+                  key={index}
+                  className={`ribbon-step ${approver.status === "Pending" ? "pending" : "pending"}`}
+                >
                   {approver.Name}
                 </div>
               ))}
@@ -612,51 +692,78 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
               <div className="main-formcontainer">
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label htmlFor="Employee Code" className="font">Employee Code</label>{" "}
+                    <label htmlFor="Employee Code" className="font">
+                      Employee Code
+                    </label>{" "}
                     : &nbsp;&nbsp;
                     <label className="fonttext"> {employee.EmployeeCode}</label>
                   </div>
                   <div className="col-md-4">
-                    <label htmlFor="Employee Name" className="font">Employee Name</label>{" "}
+                    <label htmlFor="Employee Name" className="font">
+                      Employee Name
+                    </label>{" "}
                     : &nbsp;&nbsp;
                     <label className="fonttext"> {employee.EmployeeName}</label>
                   </div>
                   <div className="col-md-4">
-                    <label htmlFor="Employee Email" className="font">Employee Email</label>{" "}
+                    <label htmlFor="Employee Email" className="font">
+                      Employee Email
+                    </label>{" "}
                     : &nbsp;&nbsp;
-                    <label className="fonttext"> {employee.EmployeeEmail}</label>
+                    <label className="fonttext">
+                      {" "}
+                      {employee.EmployeeEmail}
+                    </label>
                   </div>
                 </div>
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label htmlFor="Contact No" className="font">Contact No</label>{" "}
+                    <label htmlFor="Contact No" className="font">
+                      Contact No
+                    </label>{" "}
                     : &nbsp;&nbsp;
                     <label className="fonttext"> {employee.ContactNo}</label>
                   </div>
                   <div className="col-md-4">
-                    <label htmlFor="Employee Status" className="font">Employee Status</label>{" "}
+                    <label htmlFor="Employee Status" className="font">
+                      Employee Status
+                    </label>{" "}
                     : &nbsp;&nbsp;
-                    <label className="fonttext"> {employee.EmployeeStatus}</label>
+                    <label className="fonttext">
+                      {" "}
+                      {employee.EmployeeStatus}
+                    </label>
                   </div>
                   <div className="col-md-4">
-                    <label htmlFor="Division" className="font">Division</label>{" "}
+                    <label htmlFor="Division" className="font">
+                      Division
+                    </label>{" "}
                     : &nbsp;&nbsp;
                     <label className="fonttext"> {employee.Division}</label>
                   </div>
                 </div>
                 <div className="row mb-20">
                   <div className="col-md-4">
-                    <label htmlFor="Location" className="font">Location</label>{" "}
+                    <label htmlFor="Location" className="font">
+                      Location
+                    </label>{" "}
                     : &nbsp;&nbsp;
                     <label className="fonttext"> {employee.Location}</label>
                   </div>
                   <div className="col-md-4">
-                    <label htmlFor="RM" className="font">RM</label>{" "}
+                    <label htmlFor="RM" className="font">
+                      RM
+                    </label>{" "}
                     : &nbsp;&nbsp;
-                    <label className="fonttext"> {employee.ReportingManager?.Title}</label>
+                    <label className="fonttext">
+                      {" "}
+                      {employee.ReportingManager?.Title}
+                    </label>
                   </div>
                   <div className="col-md-4">
-                    <label htmlFor="HOD" className="font">HOD</label>{" "}
+                    <label htmlFor="HOD" className="font">
+                      HOD
+                    </label>{" "}
                     : &nbsp;&nbsp;
                     <label className="fonttext"> {employee.HOD?.Title}</label>
                   </div>
@@ -667,7 +774,6 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                 <label>Vendor &amp; PO Details</label>
               </div>
               <div className="main-formcontainer">
-
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">Vendor Name</label>
@@ -684,14 +790,20 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                     >
                       <option value="">Select Vendor</option>
                       {vendors.map((v) => (
-                        <option key={v.Id} value={v.Id}>{v.VendorName}</option>
+                        <option key={v.Id} value={v.Id}>
+                          {v.VendorName}
+                        </option>
                       ))}
                     </select>
                   </div>
 
                   <div className="col-md-4">
                     <label className="font">Vendor Code</label>
-                    <input value={selectedVendorCode} className="form-control readonly" readOnly />
+                    <input
+                      value={selectedVendorCode}
+                      className="form-control readonly"
+                      readOnly
+                    />
                   </div>
 
                   <div className="col-md-4">
@@ -702,10 +814,18 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                       disabled={poLoading}
                       onChange={(e) => {
                         const val = e.target.value;
-                        const selectedPO = poList.find((item) => item.PONumber === val);
+                        const selectedPO = poList.find(
+                          (item) => item.PONumber === val,
+                        );
                         setPoNumber(val);
                         if (selectedPO) {
-                          setPoDate(selectedPO.PODate ? new Date(selectedPO.PODate).toISOString().split("T")[0] : "");
+                          setPoDate(
+                            selectedPO.PODate
+                              ? new Date(selectedPO.PODate)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : "",
+                          );
                           setPoTerms(selectedPO.POPaymentTerms || "");
                           setPoAmount(selectedPO.POAmount || "");
                           setPoBasicAmount(selectedPO.POBasicAmount || "0");
@@ -725,11 +845,13 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                         {poLoading
                           ? "Loading PO Numbers..."
                           : poList.length === 0
-                          ? "No Paid POs found"
-                          : "Select PO Number"}
+                            ? "No Paid POs found"
+                            : "Select PO Number"}
                       </option>
                       {poList.map((item) => (
-                        <option key={item.Id} value={item.PONumber}>{item.PONumber}</option>
+                        <option key={item.Id} value={item.PONumber}>
+                          {item.PONumber}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -738,79 +860,140 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">PO Date</label>
-                    <input type="date" value={poDate} className="form-control readonly" readOnly />
+                    <input
+                      type="date"
+                      value={poDate}
+                      className="form-control readonly"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO Payment Terms</label>
-                    <input value={poTerms} className="form-control readonly" readOnly />
+                    <input
+                      value={poTerms}
+                      className="form-control readonly"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO Amount (Incl. GST)</label>
-                    <input value={poAmount} className="form-control readonly" readOnly />
+                    <input
+                      value={poAmount}
+                      className="form-control readonly"
+                      readOnly
+                    />
                   </div>
                 </div>
 
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">PO Basic Amount</label>
-                    <input value={poBasicAmount} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={poBasicAmount}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO GST Amount</label>
-                    <input value={poGSTAmount} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={poGSTAmount}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">PO Other Amount</label>
-                    <input value={poOtherAmount} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={poOtherAmount}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                 </div>
 
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">MRN Basic Amount</label>
-                    <input value={mrnBasicAmount} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={mrnBasicAmount}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">MRN GST Amount</label>
-                    <input value={mrnGSTAmount} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={mrnGSTAmount}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">MRN Other Amount</label>
-                    <input value={mrnOtherAmount} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={mrnOtherAmount}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                 </div>
 
                 <div className="row mb-20">
                   <div className="col-md-4">
                     <label className="font">PO Amount Total</label>
-                    <input value={poAmountTotal} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={poAmountTotal}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
                     <label className="font">MRN Amount Total</label>
-                    <input value={mrnAmountTotal} className="form-control readonly computed-field" readOnly />
+                    <input
+                      value={mrnAmountTotal}
+                      className="form-control readonly computed-field"
+                      readOnly
+                    />
                   </div>
                   <div className="col-md-4">
-                    <label className="font" style={{ color: "#000000" }}>Total Amount to be Capitalized</label>
+                    <label className="font" style={{ color: "#000000" }}>
+                      Total Amount to be Capitalized
+                    </label>
                     <input
                       value={advanceAmount}
                       className="form-control"
                       placeholder="0.00"
-                      onChange={(e) => handleNumberChange(e.target.value, setAdvanceAmount)}
+                      onChange={(e) =>
+                        handleNumberChange(e.target.value, setAdvanceAmount)
+                      }
                     />
                   </div>
                 </div>
 
                 <div className="row mb-20">
-                  <div className="col-md-4" style={{ display: "flex", alignItems: "flex-end", paddingBottom: "4px" }}>
+                  <div
+                    className="col-md-4"
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-end",
+                      paddingBottom: "4px",
+                    }}
+                  >
                     <div className="gst-capitalized-row">
                       <input
                         type="checkbox"
                         id="gstCapitalized"
                         checked={gstToBeCapitalized}
-                        onChange={(e) => setGstToBeCapitalized(e.target.checked)}
+                        onChange={(e) =>
+                          setGstToBeCapitalized(e.target.checked)
+                        }
                         className="gst-checkbox"
                       />
-                      <label htmlFor="gstCapitalized" className="gst-checkbox-label font">
+                      <label
+                        htmlFor="gstCapitalized"
+                        className="gst-checkbox-label font"
+                      >
                         Whether GST to be Capitalized
                       </label>
                       <span
@@ -820,7 +1003,9 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                       >
                         &#9432;
                         {showGstTooltip && (
-                          <span className="info-tooltip">Info not added yet!</span>
+                          <span className="info-tooltip">
+                            Info not added yet!
+                          </span>
                         )}
                       </span>
                     </div>
@@ -839,7 +1024,9 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                             value={code}
                             className={`form-control asset-code-input${code.trim() === "" ? " input-error" : ""}`}
                             placeholder={`Asset Code ${index + 1}`}
-                            onChange={(e) => handleAssetCodeChange(index, e.target.value)}
+                            onChange={(e) =>
+                              handleAssetCodeChange(index, e.target.value)
+                            }
                           />
                           <button
                             type="button"
@@ -867,7 +1054,9 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                 </div>
               </div>
 
-              <div className="heading1" style={{ marginTop: "10px" }}><label>Past MRN Details</label></div>
+              <div className="heading1" style={{ marginTop: "10px" }}>
+                <label>Past MRN Details</label>
+              </div>
               <div className="main-formcontainer">
                 <div className="row mb-20">
                   <div className="col-md-12">
@@ -888,18 +1077,36 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                         </thead>
                         <tbody>
                           {previousAdvances.length === 0 ? (
-                            <tr><td colSpan={9} style={{ textAlign: "center" }}>No Data</td></tr>
+                            <tr>
+                              <td colSpan={9} style={{ textAlign: "center" }}>
+                                No Data
+                              </td>
+                            </tr>
                           ) : (
                             previousAdvances.map((item: any, index: number) => (
                               <tr key={index}>
                                 <td className="px-4 py-2">{item.PONumber}</td>
-                                <td className="px-4 py-2">{item.PODate ? new Date(item.PODate).toLocaleDateString() : ""}</td>
+                                <td className="px-4 py-2">
+                                  {item.PODate
+                                    ? new Date(item.PODate).toLocaleDateString()
+                                    : ""}
+                                </td>
                                 <td className="px-4 py-2">{item.POAmount}</td>
                                 <td className="px-4 py-2">{item.MRNNumber}</td>
-                                <td className="px-4 py-2">{item.MRNDtae ? new Date(item.MRNDtae).toLocaleDateString() : ""}</td>
-                                <td className="px-4 py-2">{item.MRNAmountwithGST}</td>
+                                <td className="px-4 py-2">
+                                  {item.MRNDtae
+                                    ? new Date(
+                                        item.MRNDtae,
+                                      ).toLocaleDateString()
+                                    : ""}
+                                </td>
+                                <td className="px-4 py-2">
+                                  {item.MRNAmountwithGST}
+                                </td>
                                 <td className="px-4 py-2"></td>
-                                <td className="px-4 py-2">{item.RequestedAmountforPayment}</td>
+                                <td className="px-4 py-2">
+                                  {item.RequestedAmountforPayment}
+                                </td>
                                 <td className="px-4 py-2"></td>
                               </tr>
                             ))
@@ -911,7 +1118,9 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                 </div>
               </div>
 
-              <div className="heading1" style={{ marginTop: "10px" }}><label>Advance History (to be PO Specific)</label></div>
+              <div className="heading1" style={{ marginTop: "10px" }}>
+                <label>Advance History (to be PO Specific)</label>
+              </div>
               <div className="main-formcontainer">
                 <div className="row mb-20">
                   <div className="col-md-12">
@@ -930,18 +1139,42 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                         </thead>
                         <tbody>
                           {advanceHistory.length === 0 ? (
-                            <tr><td colSpan={7} style={{ textAlign: "center" }}>No Data</td></tr>
+                            <tr>
+                              <td colSpan={7} style={{ textAlign: "center" }}>
+                                No Data
+                              </td>
+                            </tr>
                           ) : (
                             advanceHistory.map((item: any, index: number) => {
-                              const pending = Math.max(0, Number(item.RequestAdvanceAmount || 0) - Number(item.PaidAmount || 0));
+                              const pending = Math.max(
+                                0,
+                                Number(item.RequestAdvanceAmount || 0) -
+                                  Number(item.PaidAmount || 0),
+                              );
                               return (
                                 <tr key={index}>
                                   <td className="px-4 py-2">{item.PONumber}</td>
-                                  <td className="px-4 py-2">{item.RequestAdvanceAmount}</td>
-                                  <td className="px-4 py-2">{item.Created ? new Date(item.Created).toLocaleDateString() : ""}</td>
-                                  <td className="px-4 py-2">{item.VoucherDate ? new Date(item.VoucherDate).toLocaleDateString() : ""}</td>
+                                  <td className="px-4 py-2">
+                                    {item.RequestAdvanceAmount}
+                                  </td>
+                                  <td className="px-4 py-2">
+                                    {item.Created
+                                      ? new Date(
+                                          item.Created,
+                                        ).toLocaleDateString()
+                                      : ""}
+                                  </td>
+                                  <td className="px-4 py-2">
+                                    {item.VoucherDate
+                                      ? new Date(
+                                          item.VoucherDate,
+                                        ).toLocaleDateString()
+                                      : ""}
+                                  </td>
                                   <td className="px-4 py-2"></td>
-                                  <td className="px-4 py-2">{item.PaidAmount}</td>
+                                  <td className="px-4 py-2">
+                                    {item.PaidAmount}
+                                  </td>
                                   <td className="px-4 py-2">{pending}</td>
                                 </tr>
                               );
@@ -964,12 +1197,28 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                     {attachments.length > 0 && (
                       <ul>
                         {attachments.map((file: any, index: number) => (
-                          <li key={index} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            <a href={file.ServerRelativeUrl} target="_blank" rel="noopener noreferrer">
+                          <li
+                            key={index}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "10px",
+                            }}
+                          >
+                            <a
+                              href={file.ServerRelativeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
                               {file.Name}
                             </a>
                             <span
-                              style={{ color: "red", cursor: "pointer", fontWeight: "bold", fontSize: "16px" }}
+                              style={{
+                                color: "red",
+                                cursor: "pointer",
+                                fontWeight: "bold",
+                                fontSize: "16px",
+                              }}
                               onClick={() => deleteAttachment(file.Name)}
                             >
                               ✖
@@ -992,14 +1241,34 @@ const EditAdvanceForm = ({ context, formData, onClose }: any) => {
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "1rem", marginTop: "1rem" }}>
-                <button type="button" className="draft-btn" onClick={() => handleSave("Save as Draft")}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "10px",
+                  marginBottom: "1rem",
+                  marginTop: "1rem",
+                }}
+              >
+                <button
+                  type="button"
+                  className="draft-btn"
+                  onClick={() => handleSave("Save as Draft")}
+                >
                   Save as Draft
                 </button>
-                <button type="button" className="submit-btn" onClick={() => handleSave("Pending for Approval")}>
+                <button
+                  type="button"
+                  className="submit-btn"
+                  onClick={() => handleSave("Pending for Approval")}
+                >
                   Submit
                 </button>
-                <button type="button" className="reset-btn" onClick={handleExit}>
+                <button
+                  type="button"
+                  className="reset-btn"
+                  onClick={handleExit}
+                >
                   Exit
                 </button>
               </div>
