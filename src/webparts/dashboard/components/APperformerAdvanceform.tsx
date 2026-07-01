@@ -36,6 +36,8 @@ const APperformerAdvanceform: React.FC<IProps> = ({
   const [previousAdvances, setPreviousAdvances] = useState<any[]>([]);
   const [advanceHistory, setAdvanceHistory] = useState<any[]>([]);
   const [itemData, setItemData] = useState<any>(null);
+  const tenantUrl = context.pageContext.site.absoluteUrl.split("/sites/")[0];
+  const vendorSp = spfi(`${tenantUrl}/sites/RLY_AccountsPayable_UAT`).using(SPFx(context));
   const [approverRemarks, setApproverRemarks] = useState("");
   const [voucherDate, setVoucherDate] = useState("");
   const [voucherNumber, setVoucherNumber] = useState("");
@@ -191,7 +193,7 @@ const APperformerAdvanceform: React.FC<IProps> = ({
 
   const getVendors = async () => {
     try {
-      const data = await sp.web.lists
+      const data = await vendorSp.web.lists
         .getByTitle("VendorMaster")
         .items.select("Id", "VendorCode", "VendorName")();
       setVendors(data);

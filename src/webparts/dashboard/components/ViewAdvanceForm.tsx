@@ -19,7 +19,8 @@ const ViewAdvanceForm = ({ context, formData, onClose }: any) => {
   const [vendors, setVendors] = useState<IVendor[]>([]);
   const [approverDetails, setApproverDetails] = useState<any[]>([]);
   const [workflowHistory, setWorkflowHistory] = useState<any[]>([]);
-
+  const tenantUrl = context.pageContext.site.absoluteUrl.split("/sites/")[0];
+  const vendorSp = spfi(`${tenantUrl}/sites/RLY_AccountsPayable_UAT`).using(SPFx(context));
   const [PONumber, setPONumber] = useState("");
   const [POdate, setPOdate] = useState("");
   const [POPaymentTerms, setPOPaymentTerms] = useState("");
@@ -134,7 +135,7 @@ const ViewAdvanceForm = ({ context, formData, onClose }: any) => {
   };
 
   const getVendors = async () => {
-    const data = await sp.web.lists
+    const data = await vendorSp.web.lists
       .getByTitle("VendorMaster")
       .items.select("Id", "VendorCode", "VendorName")();
     setVendors(data);
